@@ -1,2 +1,83 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// Paleta App Oficial "Quito Alcaldía Metropolitana - 3001 Obras para Quito"
+:root {
+  --quito-royal: #141f82;
+  --quito-electric: #0072ce;
+  --quito-cyan-badge: #0084d1;
+  --quito-red: #e30613;
+  --quito-bg-dark: #0b0f1c;
+  --quito-tile-bg: #1e2746;
+  --quito-tile-border: rgba(154, 176, 230, 0.14);
+  --quito-label: #9ab0e6;
+
+  /** Primary: Azul Eléctrico Quito ("Mis Trámites / Mi Buzón") **/
+  --ion-color-primary: #0072ce;
+  --ion-color-primary-rgb: 0, 114, 206;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0064b5;
+  --ion-color-primary-tint: #1a80d3;
+
+  /** Secondary: Azul Real Alcaldía de Quito **/
+  --ion-color-secondary: #1d4ed8;
+  --ion-color-secondary-rgb: 29, 78, 216;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #1a45be;
+  --ion-color-secondary-tint: #3460dc;
+
+  /** Tertiary: Celeste Brillante Quito **/
+  --ion-color-tertiary: #0284c7;
+  --ion-color-tertiary-rgb: 2, 132, 199;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #0274af;
+  --ion-color-tertiary-tint: #1b90cd;
+
+  /** Dark: Barra Institucional Azul Real de Quito **/
+  --ion-color-dark: #141f82;
+  --ion-color-dark-rgb: 20, 31, 130;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #111b72;
+  --ion-color-dark-tint: #2b358f;
+
+  /** Danger: Rojo Quito ("3001") **/
+  --ion-color-danger: #e30613;
+  --ion-color-danger-rgb: 227, 6, 19;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #c80511;
+  --ion-color-danger-tint: #e61f2b;
+
+  /** Warning **/
+  --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #0b0f1c;
+  --ion-color-warning-contrast-rgb: 11, 15, 28;
+  --ion-color-warning-shade: #d88b0a;
+  --ion-color-warning-tint: #f6a823;
+
+  /** Success **/
+  --ion-color-success: #10b981;
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0ea372;
+  --ion-color-success-tint: #28c08e;
+
+  /** Medium **/
+  --ion-color-medium: #9ab0e6;
+  --ion-color-medium-rgb: 154, 176, 230;
+  --ion-color-medium-contrast: #0b0f1c;
+  --ion-color-medium-contrast-rgb: 11, 15, 28;
+  --ion-color-medium-shade: #889bca;
+  --ion-color-medium-tint: #a4b8e9;
+
+  --ion-background-color: #0b0f1c;
+  --ion-background-color-rgb: 11, 15, 28;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+  --ion-card-background: #1e2746;
+  --ion-item-background: #171f38;
+  --ion-border-color: rgba(154, 176, 230, 0.16);
+}

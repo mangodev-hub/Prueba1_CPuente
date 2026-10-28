@@ -1,15 +1,54 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title> Tab 3 </ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title> Seguimiento Local</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+ 
+   
+    
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+
+  <div class="vacio-box" *ngIf="cargando && incidenciasSeguidas.length === 0">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Sincronizando incidencias marcadas...</p>
+  </div>
+
+  <div class="vacio-box" *ngIf="!cargando && incidenciasSeguidas.length === 0">
+    <ion-icon name="bookmarks-outline" color="medium"></ion-icon>
+    <h3>No tienes incidencias en seguimiento</h3>
+    <p>Marca cualquier incidencia con el ícono de marcador desde el listado o el detalle para darle seguimiento en tu teléfono.</p>
+    <ion-button routerLink="/tabs/tab2" color="primary">Ir al listado de incidencias</ion-button>
+  </div>
+
+  <ion-card
+    *ngFor="let item of incidenciasSeguidas"
+    class="seguimiento-card"
+    (click)="abrirDetalle(item.id)">
+
+    <ion-card-header>
+      <div class="header-top">
+        <span class="codigo">{{ item.codigo }}</span>
+        <ion-badge [color]="colorEstado(item.estado)">{{ item.estado | uppercase }}</ion-badge>
+      </div>
+      <ion-card-title>{{ item.tipo }}</ion-card-title>
+      <ion-card-subtitle>{{ item.sector }} • {{ item.direccion }}</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>{{ item.descripcion }}</p>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="danger"
+        size="small"
+        class="ion-margin-top"
+        (click)="quitarDeSeguimiento($event, item.codigo)">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Desmarcar del seguimiento
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

@@ -1,13 +1,9 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
+@import "leaflet/dist/leaflet.css";
+
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+}
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
@@ -18,20 +14,151 @@
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* Optional CSS utils */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* =========================================================
+   Estilo App "Quito Alcaldía Metropolitana - 3001 Obras"
+   ========================================================= */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+ion-content {
+  --background: #0b0f1c;
+  --color: #ffffff;
+}
+
+ion-header ion-toolbar {
+  --background: #141f82 !important;
+  --color: #ffffff !important;
+  --border-width: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+ion-title {
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+ion-card {
+  --background: #1e2746;
+  --color: #ffffff;
+  background: #1e2746;
+  color: #ffffff;
+  border-radius: 18px !important;
+  border: 1px solid rgba(154, 176, 230, 0.14);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+ion-card-title {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+
+ion-card-subtitle {
+  color: #9ab0e6 !important;
+  font-weight: 600;
+}
+
+ion-item {
+  --background: #151c33;
+  --color: #ffffff;
+  --border-color: rgba(154, 176, 230, 0.16);
+  --highlight-color-focused: #0072ce;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  --color: #ffffff;
+  --placeholder-color: #7c90c4;
+  color: #ffffff;
+}
+
+ion-button {
+  --border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  min-height: 46px;
+}
+
+ion-badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+ion-tab-bar {
+  --background: #11172b;
+  --color: #7c90c4;
+  --color-selected: #ffffff;
+  border-top: 1px solid rgba(154, 176, 230, 0.15);
+  height: 62px;
+
+  ion-tab-button {
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+
+  ion-tab-button.tab-selected {
+    color: #ffffff;
+
+    ion-icon {
+      color: #0072ce;
+    }
+  }
+}
+
+.quito-top-hero {
+  margin-bottom: 14px;
+}
+
+.quito-escudo-box {
+  background: #141f82;
+  border-radius: 16px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+
+  .escudo-icono { font-size: 2.2rem; color: #fff; margin-bottom: 4px; }
+  .quito-palabra { font-size: 1.55rem; font-weight: 900; color: #fff; line-height: 1; }
+  .quito-sub { font-size: 0.65rem; font-weight: 700; color: #cbd5e1; letter-spacing: 0.8px; margin-top: 6px; }
+}
+
+.quito-escudo-box {
+  background: #141f82;
+  border-radius: 16px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+
+  .escudo-icono { font-size: 2.2rem; color: #fff; margin-bottom: 4px; }
+  .quito-palabra { font-size: 1.45rem; font-weight: 900; color: #fff; line-height: 1; }
+  .quito-sub { font-size: 0.52rem; font-weight: 700; color: #cbd5e1; letter-spacing: 0.6px; margin-top: 4px; }
+}
+
+.quito-lema-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  .numero-obras { font-size: 2.3rem; font-weight: 900; color: #e30613; line-height: 0.95; }
+  .obras-para { font-size: 0.95rem; font-style: italic; color: #38bdf8; margin: 2px 0; }
+  .quito-azul { font-size: 1.75rem; font-weight: 900; color: #0072ce; line-height: 1; }
+}
+

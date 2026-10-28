@@ -1,0 +1,103 @@
+ion-card {
+  margin-bottom: 16px;
+  border-top: 3px solid #0072ce;
+}
+
+ion-card-title {
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.error-msg {
+  display: block;
+  padding: 4px 12px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.foto-preview {
+  margin-top: 12px;
+  text-align: center;
+
+  img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #0072ce;
+    margin-bottom: 8px;
+  }
+}
+
+.mapa-instruccion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: #9ab0e6;
+}
+
+.mapa-contenedor {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  border: 2px solid #0072ce;
+  margin-bottom: 10px;
+  z-index: 1;
+}
+
+.gps-status {
+  font-size: 0.85rem;
+  color: #38bdf8;
+  margin: 8px 0;
+  font-weight: 700;
+}
+
+.clima-panel {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #151c33;
+  border-left: 4px solid #0072ce;
+  border-radius: 12px;
+
+  .clima-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.94rem;
+    color: #ffffff;
+  }
+}
+
+.alert-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+
+  ion-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &.warning {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fde68a;
+    border-left: 4px solid #f59e0b;
+  }
+
+  &.danger {
+    background: rgba(227, 6, 19, 0.18);
+    color: #fecdd3;
+    border-left: 4px solid #e30613;
+  }
+}

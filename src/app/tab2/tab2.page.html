@@ -1,15 +1,113 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title> Tab 2 </ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Incidencias</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/registro" color="warning">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Nueva
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="reiniciarYCargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  <!-- Spinner de primera carga -->
+  <div class="estado-vacio" *ngIf="cargandoInicial">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Consultando servicio de oficina...</p>
+  </div>
+
+  <!-- Manejo de fallo en la consulta  -->
+  <div class="estado-vacio error" *ngIf="!cargandoInicial && errorConsulta">
+    <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+    <h3>Error de comunicación</h3>
+    <p>{{ errorConsulta }}</p>
+    <ion-button color="primary" (click)="reiniciarYCargar()">Reintentar consulta</ion-button>
+  </div>
+
+  <!-- Manejo cuando no existen registros  -->
+  <div class="estado-vacio" *ngIf="!cargandoInicial && !errorConsulta && incidencias.length === 0">
+    <ion-icon name="folder-open-outline" color="medium"></ion-icon>
+    <h3>Sin incidencias registradas</h3>
+    <p>No existen registros en el servicio de oficina en este momento.</p>
+    <ion-button color="warning" routerLink="/registro">Registrar primera incidencia</ion-button>
+  </div>
+
+  <!-- Listado de Incidencias  -->
+  <ion-card
+    *ngFor="let item of incidencias"
+    class="incidencia-card"
+    (click)="abrirDetalle(item.id)">
+
+    <ion-card-header>
+      <div class="top-row">
+        <!-- Campo 1: Código y Campo 7: Estado -->
+        <span class="codigo-tag">{{ item.codigo }}</span>
+        <div class="acciones-top">
+          <ion-badge [color]="colorEstado(item.estado)">{{ item.estado | uppercase }}</ion-badge>
+          <ion-button
+            fill="clear"
+            size="small"
+            (click)="toggleSeguimiento($event, item.codigo)">
+            <ion-icon
+              slot="icon-only"
+              [name]="esSeguida(item.codigo) ? 'bookmark' : 'bookmark-outline'"
+              [color]="esSeguida(item.codigo) ? 'warning' : 'medium'">
+            </ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Campo 2: Tipo y Campo 6: Fecha -->
+      <ion-card-title>{{ item.tipo }}</ion-card-title>
+      <ion-card-subtitle>{{ item.fecha | date:'dd/MM/yyyy HH:mm' }} • Prioridad {{ item.prioridad }}</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="contenido-flex">
+        <div class="textos">
+          <!-- Campo 3: Descripción -->
+          <p class="desc">{{ item.descripcion }}</p>
+          <!-- Campo 5: Sector y Campo 4: Dirección -->
+          <p class="ubicacion">
+            <strong>Sector {{ item.sector }}:</strong> {{ item.direccion }}
+          </p>
+        </div>
+
+        <!-- Campo 8: Fotografía (si existe) -->
+        <ion-thumbnail *ngIf="item.fotografia" class="foto-mini">
+          <img [src]="item.fotografia" alt="Evidencia" />
+        </ion-thumbnail>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Botón de respaldo por si en pantallas altas los primeros 5 registros no generan scroll vertical -->
+  <div class="cargar-mas-box" *ngIf="!cargandoInicial && incidencias.length > 0 && !finDeRegistros && !cargandoMas">
+    <ion-button fill="clear" size="small" color="medium" (click)="cargarSiguientePagina()">
+      <ion-icon slot="start" name="arrow-down-circle-outline"></ion-icon>
+      Desliza hacia abajo o toca aquí para cargar más ({{ incidencias.length }} mostrados)
+    </ion-button>
+  </div>
+
+  <!-- R3: Infinite Scroll que se desactiva al agotarse las páginas -->
+  <ion-infinite-scroll
+    *ngIf="!cargandoInicial && incidencias.length > 0 && !finDeRegistros"
+    [disabled]="finDeRegistros"
+    threshold="120px"
+    (ionInfinite)="cargarSiguientePagina($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Cargando siguiente grupo de incidencias...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- Indicador visual cuando ya no se solicitan más páginas  -->
+  <div class="fin-lista" *ngIf="finDeRegistros && incidencias.length > 0">
+    Has llegado al final de los registros ({{ incidencias.length }} mostrados). No se solicitan más páginas.
+  </div>
 </ion-content>

@@ -1,0 +1,158 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab2" text="Atrás"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ incidencia ? incidencia.codigo : 'Detalle' }}</ion-title>
+    <ion-buttons slot="end" *ngIf="incidencia">
+      <ion-button (click)="toggleSeguimientoLocal()" [color]="enSeguimiento ? 'warning' : 'light'">
+        <ion-icon slot="icon-only" [name]="enSeguimiento ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+
+  <div class="centrado" *ngIf="cargando">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando información de la incidencia...</p>
+  </div>
+
+  
+  <ion-card *ngIf="!cargando && errorCarga" color="danger">
+    <ion-card-content>
+      <p>{{ errorCarga }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ng-container *ngIf="!cargando && incidencia">
+
+   
+    <ion-card>
+      <ion-card-header>
+        <div class="badges-row">
+          <ion-badge [color]="colorEstado(incidencia.estado)">
+            {{ incidencia.estado | uppercase }}
+          </ion-badge>
+          <ion-badge [color]="colorPrioridad(incidencia.prioridad)">
+            Prioridad {{ incidencia.prioridad | uppercase }}
+          </ion-badge>
+        </div>
+        <ion-card-subtitle>{{ incidencia.codigo }} • {{ incidencia.fecha | date:'dd/MM/yyyy HH:mm' }}</ion-card-subtitle>
+        <ion-card-title>{{ incidencia.tipo }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p class="descripcion">{{ incidencia.descripcion }}</p>
+
+        <div class="info-bloque">
+          <div><strong>Sector:</strong> {{ incidencia.sector }}</div>
+          <div><strong>Dirección:</strong> {{ incidencia.direccion }}</div>
+          <div *ngIf="incidencia.latitud != null && incidencia.longitud != null">
+            <strong>Coordenadas:</strong> {{ incidencia.latitud }}, {{ incidencia.longitud }}
+          </div>
+        </div>
+
+        
+        <ion-button
+          expand="block"
+          fill="outline"
+          [color]="enSeguimiento ? 'warning' : 'medium'"
+          class="ion-margin-top"
+          (click)="toggleSeguimientoLocal()">
+          <ion-icon [name]="enSeguimiento ? 'bookmark' : 'bookmark-outline'" slot="start"></ion-icon>
+          {{ enSeguimiento ? 'En seguimiento local (Tocar para quitar)' : 'Marcar para seguimiento en este dispositivo' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    
+    <ion-card *ngIf="incidencia.fotografia">
+      <ion-card-header>
+        <ion-card-title>Evidencia Fotográfica</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <img [src]="incidencia.fotografia" alt="Fotografía de incidencia" class="foto-detalle" />
+      </ion-card-content>
+    </ion-card>
+
+    
+    <ion-card *ngIf="(incidencia.latitud != null && incidencia.longitud != null) || incidencia.clima">
+      <ion-card-header>
+        <ion-card-title>Ubicación y Clima del Registro</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="incidencia.latitud != null && incidencia.longitud != null" id="mapa-detalle" class="mapa-detalle"></div>
+
+        <div class="clima-box" *ngIf="incidencia.clima">
+          <div><strong>Temperatura:</strong> {{ incidencia.clima.temperatura }} °C</div>
+          <div><strong>Precipitación (1h):</strong> {{ incidencia.clima.precipitacionMm }} mm</div>
+          <div><strong>Condición:</strong> {{ incidencia.clima.condicion }}</div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Gestión de Estado en Oficina</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+      
+        <ng-container *ngIf="incidencia.estado !== 'resuelta'">
+          <ion-item>
+            <ion-select
+              label="Cambiar estado a:"
+              labelPlacement="stacked"
+              [(ngModel)]="nuevoEstadoSeleccionado">
+              <ion-select-option *ngFor="let est of estadosPermitidos" [value]="est">
+                {{ est | uppercase }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+         
+          <ion-item *ngIf="nuevoEstadoSeleccionado === 'resuelta'" class="ion-margin-top">
+            <ion-textarea
+              label="Observación de resolución (Obligatoria) *"
+              labelPlacement="stacked"
+              rows="3"
+              placeholder="Describa el trabajo realizado para resolver la incidencia..."
+              [(ngModel)]="observacionInput">
+            </ion-textarea>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            color="success"
+            class="ion-margin-top"
+            [disabled]="actualizando || !nuevoEstadoSeleccionado"
+            (click)="guardarCambioEstado()">
+            <ion-spinner *ngIf="actualizando" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!actualizando" name="checkmark-done-circle" slot="start"></ion-icon>
+            Actualizar Estado en Servicio de Oficina
+          </ion-button>
+        </ng-container>
+
+        
+        <div class="resuelta-panel" *ngIf="incidencia.estado === 'resuelta'">
+          <div class="resuelta-header">
+            <ion-icon name="lock-closed" color="success"></ion-icon>
+            <strong>Incidencia Resuelta y Cerrada</strong>
+          </div>
+          <p class="regla-texto">
+            Según las reglas de operación municipal, una incidencia resuelta no puede regresar a estado pendiente ni a en proceso.
+          </p>
+          <div class="observacion-cierre" *ngIf="incidencia.observacion">
+            <strong>Observación de cierre:</strong>
+            <p>{{ incidencia.observacion }}</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+</ion-content>

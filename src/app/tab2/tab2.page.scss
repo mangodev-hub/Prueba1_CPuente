@@ -1,0 +1,108 @@
+.estado-vacio {
+  text-align: center;
+  padding: 48px 20px;
+  color: #9ab0e6;
+
+  ion-icon {
+    font-size: 3.5rem;
+    color: #0072ce;
+  }
+
+  h3 {
+    margin-top: 12px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+}
+
+.incidencia-card {
+  margin-bottom: 16px;
+  padding: 4px 0;
+  border-radius: 18px;
+  border-left: 5px solid #0072ce !important;
+  cursor: pointer;
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .codigo-tag {
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: #ffffff;
+    background: #0072ce;
+    padding: 4px 10px;
+    border-radius: 10px;
+  }
+
+  .acciones-top {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  ion-card-title {
+    font-size: 1.1rem;
+  }
+}
+
+.contenido-flex {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+
+  .textos {
+    flex: 1;
+  }
+
+  .desc {
+    color: #e2e8f0;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+
+  .ubicacion {
+    font-size: 0.84rem;
+    color: #9ab0e6;
+
+    strong {
+      color: #38bdf8;
+    }
+  }
+
+  .foto-mini {
+    --size: 76px;
+    --border-radius: 12px;
+    flex-shrink: 0;
+    border: 2px solid #0072ce;
+    overflow: hidden;
+
+    img {
+      object-fit: cover;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.cargar-mas-box {
+  text-align: center;
+  margin: 4px 0 8px;
+}
+
+.fin-lista {
+  text-align: center;
+  padding: 16px;
+  font-size: 0.85rem;
+  color: #9ab0e6;
+  font-style: italic;
+}
