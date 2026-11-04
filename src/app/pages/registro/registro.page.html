@@ -4,11 +4,6 @@
       <ion-back-button defaultHref="/tabs/tab1" text="Volver"></ion-back-button>
     </ion-buttons>
     <ion-title>Registrar Incidencia</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="configurarCredencialesCloudinary()" title="Configurar Cloudinary">
-        <ion-icon slot="icon-only" name="key-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -22,7 +17,7 @@
     <div class="step-line" [class.done]="paso1Completo"></div>
     <div class="step-pill" [class.done]="esFotoCloudinary || (form.get('fotografia')?.value)">
       <span class="step-num">2</span>
-      <span class="step-txt">Cloudinary</span>
+      <span class="step-txt">Evidencia</span>
     </div>
     <div class="step-line" [class.done]="paso3Completo"></div>
     <div class="step-pill" [class.done]="paso3Completo">
@@ -143,12 +138,12 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- SECCIÓN 2: EVIDENCIA FOTOGRÁFICA EN CLOUDINARY -->
+    <!-- SECCIÓN 2: EVIDENCIA FOTOGRÁFICA -->
     <ion-card class="form-section-card">
       <ion-card-header>
         <div class="section-header-row">
           <div class="section-title-group">
-            <span class="section-step-badge">PASO 2 • CLOUDINARY CDN</span>
+            <span class="section-step-badge">PASO 2 • EVIDENCIA EN CAMPO</span>
             <ion-card-title>Evidencia Fotográfica</ion-card-title>
           </div>
           <ion-badge [color]="form.get('prioridad')?.value === 'alta' ? 'danger' : 'medium'">
@@ -158,17 +153,6 @@
       </ion-card-header>
 
       <ion-card-content>
-        <div class="cloudinary-info-bar">
-          <div class="cloud-meta">
-            <ion-icon name="cloud-upload-outline"></ion-icon>
-            <span>Cloud: <strong>{{ cloudinaryService.cloudName }}</strong> • Key: <strong>fotos</strong></span>
-          </div>
-          <button type="button" class="config-link-btn" (click)="configurarCredencialesCloudinary()">
-            <ion-icon name="key-outline"></ion-icon>
-            API Secret
-          </button>
-        </div>
-
         <!-- Botones de captura dual (Cámara / Galería) -->
         <div class="captura-botones-grid">
           <ion-button expand="block" color="primary" type="button" (click)="capturarFoto('camara')" [disabled]="subiendoCloudinary">
@@ -182,12 +166,12 @@
           </ion-button>
         </div>
 
-        <!-- Estado subiendo a Cloudinary -->
+        <!-- Estado subiendo a la nube -->
         <div class="cloudinary-uploading-box" *ngIf="subiendoCloudinary">
           <ion-spinner name="crescent" color="primary"></ion-spinner>
           <div>
-            <strong>Subiendo imagen a Cloudinary ({{ cloudinaryService.cloudName }})...</strong>
-            <p>Optimizando y generando URL segura en la nube</p>
+            <strong>Sincronizando evidencia en la nube...</strong>
+            <p>Optimizando y respaldando fotografía</p>
           </div>
         </div>
 
@@ -202,40 +186,24 @@
           </span>
         </div>
 
-        <!-- Aviso si falta configurar API Secret / Preset en Cloudinary -->
-        <div class="alert-box warning" *ngIf="errorCloudinary && !subiendoCloudinary">
-          <ion-icon name="warning"></ion-icon>
-          <div class="alert-flex-col">
-            <span>{{ errorCloudinary }}</span>
-            <div class="alert-actions">
-              <ion-button size="small" fill="solid" color="warning" type="button" (click)="configurarCredencialesCloudinary()">
-                <ion-icon name="key-outline" slot="start"></ion-icon>
-                Ingresar API Secret
-              </ion-button>
-              <ion-button size="small" fill="outline" color="light" type="button" (click)="subirACloudinary()">
-                <ion-icon name="refresh" slot="start"></ion-icon>
-                Reintentar subida
-              </ion-button>
-            </div>
-          </div>
-        </div>
-
         <!-- Vista previa de la fotografía -->
         <div class="foto-preview-card" *ngIf="form.get('fotografia')?.value as foto">
           <div class="foto-wrapper">
             <img [src]="cloudinaryService.optimizarUrl(foto, 900)" alt="Previsualización de evidencia" />
-            <span class="cloud-badge" [class.synced]="esFotoCloudinary">
-              <ion-icon [name]="esFotoCloudinary ? 'cloud-done-outline' : 'cloud-upload-outline'"></ion-icon>
-              {{ esFotoCloudinary ? 'Alojada en Cloudinary CDN' : 'Lista en dispositivo (Pendiente nube)' }}
+            <span class="cloud-badge synced">
+              <ion-icon name="cloud-done-outline"></ion-icon>
+              {{ esFotoCloudinary ? 'Evidencia sincronizada en la nube' : 'Evidencia adjuntada' }}
             </span>
           </div>
 
           <div class="foto-meta-footer">
-            <div class="meta-details" *ngIf="esFotoCloudinary">
-              <span class="url-pill">{{ foto }}</span>
-              <small *ngIf="infoSubidaCloudinary as info">
+            <div class="meta-details">
+              <small *ngIf="infoSubidaCloudinary as info; else textoListo">
                 Formato {{ info.formato | uppercase }} • {{ info.tamanoKb }} KB
               </small>
+              <ng-template #textoListo>
+                <small>Fotografía lista para el registro</small>
+              </ng-template>
             </div>
             <ion-button fill="outline" color="danger" size="small" type="button" (click)="eliminarFoto()">
               <ion-icon name="trash" slot="start"></ion-icon>

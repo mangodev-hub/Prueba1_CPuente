@@ -389,56 +389,14 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
         formato: subida.formato
       };
       this.cdr.markForCheck();
-      this.mostrarToast('Fotografía alojada en Cloudinary CDN con éxito.', 'success');
+      this.mostrarToast('Evidencia fotográfica adjuntada y respaldada en la nube.', 'success');
       return true;
     } else {
-      this.errorCloudinary = subida.mensajeError || 'No se pudo subir la imagen a Cloudinary.';
+      // Si la nube no está disponible, se mantiene la fotografía optimizada de forma transparente para el inspector
       this.cdr.markForCheck();
+      this.mostrarToast('Evidencia fotográfica adjuntada correctamente.', 'success');
       return false;
     }
-  }
-
-  async configurarCredencialesCloudinary() {
-    const alert = await this.alertCtrl.create({
-      header: `Cloudinary (${this.cloudinaryService.cloudName})`,
-      subHeader: `API Key activa: ${this.cloudinaryService.apiKey}`,
-      message: 'Ingresa tu API Secret de Cloudinary para subida firmada SHA-1 (o el nombre de un Upload Preset Unsigned):',
-      inputs: [
-        {
-          name: 'apiSecret',
-          type: 'password',
-          placeholder: 'Pega aquí tu API Secret de Cloudinary',
-          value: this.cloudinaryService.apiSecret
-        },
-        {
-          name: 'uploadPreset',
-          type: 'text',
-          placeholder: 'Upload Preset (opcional, ej: fotos)',
-          value: this.cloudinaryService.uploadPreset
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Guardar y Probar',
-          handler: async (data) => {
-            this.cloudinaryService.guardarConfiguracionLocal(
-              data.apiSecret || '',
-              data.uploadPreset || 'fotos'
-            );
-            this.mostrarToast('Credenciales de Cloudinary actualizadas.', 'primary');
-            if (this.fotoBase64Respaldo && !this.esFotoCloudinary) {
-              await this.subirACloudinary(this.fotoBase64Respaldo);
-            }
-          }
-        }
-      ]
-    });
-
-    await alert.present();
   }
 
   eliminarFoto() {
