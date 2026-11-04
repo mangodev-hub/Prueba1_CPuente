@@ -10,12 +10,14 @@ import {
 import { addIcons } from 'ionicons';
 import {
   addCircle, listOutline, bookmarkOutline, alertCircleOutline,
-  timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline, refreshOutline
+  timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline,
+  refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 
 import { IncidenciasService } from '../core/services/incidencias';
 import { StorageService } from '../core/services/storage';
+import { CloudinaryService } from '../core/services/cloudinary';
 import { Incidencia } from '../core/models/incidencia.model';
 
 @Component({
@@ -33,6 +35,7 @@ import { Incidencia } from '../core/models/incidencia.model';
 export class Tab1Page implements OnInit, OnDestroy, ViewWillEnter {
   private incidenciasService = inject(IncidenciasService);
   private storageService = inject(StorageService);
+  readonly cloudinaryService = inject(CloudinaryService);
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -55,8 +58,19 @@ export class Tab1Page implements OnInit, OnDestroy, ViewWillEnter {
   constructor() {
     addIcons({
       addCircle, listOutline, bookmarkOutline, alertCircleOutline,
-      timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline, refreshOutline
+      timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline,
+      refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline
     });
+  }
+
+  get porcentajeResolucion(): number {
+    if (!this.totalIncidencias) return 0;
+    return Math.round((this.resueltas / this.totalIncidencias) * 100);
+  }
+
+  get porcentajeEnProceso(): number {
+    if (!this.totalIncidencias) return 0;
+    return Math.round((this.enProceso / this.totalIncidencias) * 100);
   }
 
   ngOnInit() {

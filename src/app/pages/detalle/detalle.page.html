@@ -14,13 +14,11 @@
 
 <ion-content class="ion-padding">
 
-
   <div class="centrado" *ngIf="cargando">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
     <p>Cargando información de la incidencia...</p>
   </div>
 
-  
   <ion-card *ngIf="!cargando && errorCarga" color="danger">
     <ion-card-content>
       <p>{{ errorCarga }}</p>
@@ -29,8 +27,26 @@
 
   <ng-container *ngIf="!cargando && incidencia">
 
-   
-    <ion-card>
+    <!-- Línea de tiempo de estado de la incidencia -->
+    <div class="workflow-stepper">
+      <div class="wf-step" [class.active]="incidencia.estado === 'pendiente'" [class.completed]="incidencia.estado !== 'pendiente'">
+        <div class="wf-dot">1</div>
+        <span>Pendiente</span>
+      </div>
+      <div class="wf-bar" [class.completed]="incidencia.estado === 'en proceso' || incidencia.estado === 'resuelta'"></div>
+      <div class="wf-step" [class.active]="incidencia.estado === 'en proceso'" [class.completed]="incidencia.estado === 'resuelta'">
+        <div class="wf-dot">2</div>
+        <span>En Proceso</span>
+      </div>
+      <div class="wf-bar" [class.completed]="incidencia.estado === 'resuelta'"></div>
+      <div class="wf-step" [class.active]="incidencia.estado === 'resuelta'" [class.completed]="incidencia.estado === 'resuelta'">
+        <div class="wf-dot">3</div>
+        <span>Resuelta</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta Principal de Información -->
+    <ion-card class="detalle-main-card">
       <ion-card-header>
         <div class="badges-row">
           <ion-badge [color]="colorEstado(incidencia.estado)">
@@ -40,7 +56,10 @@
             Prioridad {{ incidencia.prioridad | uppercase }}
           </ion-badge>
         </div>
-        <ion-card-subtitle>{{ incidencia.codigo }} • {{ incidencia.fecha | date:'dd/MM/yyyy HH:mm' }}</ion-card-subtitle>
+        <ion-card-subtitle>
+          <ion-icon name="calendar-outline"></ion-icon>
+          {{ incidencia.codigo }} • {{ incidencia.fecha | date:'dd/MM/yyyy HH:mm' }}
+        </ion-card-subtitle>
         <ion-card-title>{{ incidencia.tipo }}</ion-card-title>
       </ion-card-header>
 
@@ -48,14 +67,31 @@
         <p class="descripcion">{{ incidencia.descripcion }}</p>
 
         <div class="info-bloque">
-          <div><strong>Sector:</strong> {{ incidencia.sector }}</div>
-          <div><strong>Dirección:</strong> {{ incidencia.direccion }}</div>
-          <div *ngIf="incidencia.latitud != null && incidencia.longitud != null">
-            <strong>Coordenadas:</strong> {{ incidencia.latitud }}, {{ incidencia.longitud }}
+          <div class="info-row">
+            <ion-icon name="location-outline"></ion-icon>
+            <div>
+              <span class="info-lbl">Sector Municipal</span>
+              <strong>{{ incidencia.sector }}</strong>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <ion-icon name="navigate-outline"></ion-icon>
+            <div>
+              <span class="info-lbl">Dirección / Referencia</span>
+              <strong>{{ incidencia.direccion }}</strong>
+            </div>
+          </div>
+
+          <div class="info-row" *ngIf="incidencia.latitud != null && incidencia.longitud != null">
+            <ion-icon name="location-outline"></ion-icon>
+            <div>
+              <span class="info-lbl">Coordenadas GPS</span>
+              <strong>{{ incidencia.latitud }}, {{ incidencia.longitud }}</strong>
+            </div>
           </div>
         </div>
 
-        
         <ion-button
           expand="block"
           fill="outline"
@@ -68,17 +104,40 @@
       </ion-card-content>
     </ion-card>
 
-    
+    <!-- Evidencia Fotográfica con soporte Cloudinary y Zoom -->
     <ion-card *ngIf="incidencia.fotografia">
       <ion-card-header>
-        <ion-card-title>Evidencia Fotográfica</ion-card-title>
+        <div class="card-header-flex">
+          <ion-card-title>Evidencia Fotográfica</ion-card-title>
+          <span class="cloudinary-chip" *ngIf="cloudinaryService.esUrlCloudinary(incidencia.fotografia)">
+            <ion-icon name="cloud-done-outline"></ion-icon>
+            Cloudinary CDN
+          </span>
+        </div>
       </ion-card-header>
       <ion-card-content>
-        <img [src]="incidencia.fotografia" alt="Fotografía de incidencia" class="foto-detalle" />
+        <div class="foto-detalle-container" (click)="toggleFotoAmpliada()">
+          <img
+            [src]="cloudinaryService.optimizarUrl(incidencia.fotografia, 1000)"
+            alt="Fotografía de incidencia"
+            class="foto-detalle" />
+          <button type="button" class="zoom-btn">
+            <ion-icon name="expand-outline"></ion-icon>
+            Ampliar imagen
+          </button>
+        </div>
       </ion-card-content>
     </ion-card>
 
-    
+    <!-- Visor Lightbox a pantalla completa -->
+    <div class="lightbox-overlay" *ngIf="fotoAmpliada && incidencia.fotografia" (click)="toggleFotoAmpliada()">
+      <button type="button" class="lightbox-close">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <img [src]="incidencia.fotografia" alt="Evidencia ampliada" />
+    </div>
+
+    <!-- Ubicación y Clima del Registro -->
     <ion-card *ngIf="(incidencia.latitud != null && incidencia.longitud != null) || incidencia.clima">
       <ion-card-header>
         <ion-card-title>Ubicación y Clima del Registro</ion-card-title>
@@ -86,22 +145,33 @@
       <ion-card-content>
         <div *ngIf="incidencia.latitud != null && incidencia.longitud != null" id="mapa-detalle" class="mapa-detalle"></div>
 
-        <div class="clima-box" *ngIf="incidencia.clima">
-          <div><strong>Temperatura:</strong> {{ incidencia.clima.temperatura }} °C</div>
-          <div><strong>Precipitación (1h):</strong> {{ incidencia.clima.precipitacionMm }} mm</div>
-          <div><strong>Condición:</strong> {{ incidencia.clima.condicion }}</div>
+        <div class="clima-metrics-grid" *ngIf="incidencia.clima">
+          <div class="clima-metric-box">
+            <ion-icon name="thermometer-outline" class="temp-icon"></ion-icon>
+            <span class="val">{{ incidencia.clima.temperatura }} °C</span>
+            <span class="lbl">Temperatura</span>
+          </div>
+          <div class="clima-metric-box">
+            <ion-icon name="rainy-outline" class="rain-icon"></ion-icon>
+            <span class="val">{{ incidencia.clima.precipitacionMm }} mm</span>
+            <span class="lbl">Precipitación</span>
+          </div>
+          <div class="clima-metric-box">
+            <ion-icon name="partly-sunny-outline" class="sky-icon"></ion-icon>
+            <span class="val cond">{{ incidencia.clima.condicion }}</span>
+            <span class="lbl">Condición</span>
+          </div>
         </div>
       </ion-card-content>
     </ion-card>
 
-    
+    <!-- Gestión de Estado en Oficina -->
     <ion-card>
       <ion-card-header>
         <ion-card-title>Gestión de Estado en Oficina</ion-card-title>
       </ion-card-header>
 
       <ion-card-content>
-      
         <ng-container *ngIf="incidencia.estado !== 'resuelta'">
           <ion-item>
             <ion-select
@@ -114,7 +184,6 @@
             </ion-select>
           </ion-item>
 
-         
           <ion-item *ngIf="nuevoEstadoSeleccionado === 'resuelta'" class="ion-margin-top">
             <ion-textarea
               label="Observación de resolución (Obligatoria) *"
@@ -137,7 +206,6 @@
           </ion-button>
         </ng-container>
 
-        
         <div class="resuelta-panel" *ngIf="incidencia.estado === 'resuelta'">
           <div class="resuelta-header">
             <ion-icon name="lock-closed" color="success"></ion-icon>

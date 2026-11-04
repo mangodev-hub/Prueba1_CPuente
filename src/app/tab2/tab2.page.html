@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar color="dark">
-    <ion-title>Incidencias</ion-title>
+    <ion-title>Incidencias en Campo</ion-title>
     <ion-buttons slot="end">
-      <ion-button routerLink="/registro" color="warning">
+      <ion-button routerLink="/registro" color="warning" fill="solid" class="btn-nueva-top">
         <ion-icon slot="start" name="add"></ion-icon>
         Nueva
       </ion-button>
@@ -15,13 +15,99 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Panel de Búsqueda y Filtros Organizativos -->
+  <div class="filtros-panel" *ngIf="!cargandoInicial && !errorConsulta && incidencias.length > 0">
+    <ion-searchbar
+      [(ngModel)]="textoBusqueda"
+      placeholder="Buscar por código, tipo, sector o calle..."
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+
+    <div class="chips-grupo">
+      <span class="grupo-label">Estado:</span>
+      <div class="chips-scroll">
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="filtroEstado === 'todos'"
+          (click)="seleccionarFiltroEstado('todos')">
+          Todos
+        </button>
+        <button
+          type="button"
+          class="chip-btn danger"
+          [class.active]="filtroEstado === 'pendiente'"
+          (click)="seleccionarFiltroEstado('pendiente')">
+          Pendientes
+        </button>
+        <button
+          type="button"
+          class="chip-btn warning"
+          [class.active]="filtroEstado === 'en proceso'"
+          (click)="seleccionarFiltroEstado('en proceso')">
+          En Proceso
+        </button>
+        <button
+          type="button"
+          class="chip-btn success"
+          [class.active]="filtroEstado === 'resuelta'"
+          (click)="seleccionarFiltroEstado('resuelta')">
+          Resueltas
+        </button>
+      </div>
+    </div>
+
+    <div class="chips-grupo">
+      <span class="grupo-label">Prioridad:</span>
+      <div class="chips-scroll">
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="filtroPrioridad === 'todas'"
+          (click)="seleccionarFiltroPrioridad('todas')">
+          Todas
+        </button>
+        <button
+          type="button"
+          class="chip-btn danger"
+          [class.active]="filtroPrioridad === 'alta'"
+          (click)="seleccionarFiltroPrioridad('alta')">
+          Alta
+        </button>
+        <button
+          type="button"
+          class="chip-btn warning"
+          [class.active]="filtroPrioridad === 'media'"
+          (click)="seleccionarFiltroPrioridad('media')">
+          Media
+        </button>
+        <button
+          type="button"
+          class="chip-btn info"
+          [class.active]="filtroPrioridad === 'baja'"
+          (click)="seleccionarFiltroPrioridad('baja')">
+          Baja
+        </button>
+      </div>
+    </div>
+
+    <div class="resumen-filtros">
+      <span>Mostrando <strong>{{ incidenciasFiltradas.length }}</strong> de {{ incidencias.length }} cargadas</span>
+      <button type="button" class="limpiar-link" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        Restablecer filtros
+      </button>
+    </div>
+  </div>
+
   <!-- Spinner de primera carga -->
   <div class="estado-vacio" *ngIf="cargandoInicial">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
     <p>Consultando servicio de oficina...</p>
   </div>
 
-  <!-- Manejo de fallo en la consulta  -->
+  <!-- Manejo de fallo en la consulta -->
   <div class="estado-vacio error" *ngIf="!cargandoInicial && errorConsulta">
     <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
     <h3>Error de comunicación</h3>
@@ -29,7 +115,7 @@
     <ion-button color="primary" (click)="reiniciarYCargar()">Reintentar consulta</ion-button>
   </div>
 
-  <!-- Manejo cuando no existen registros  -->
+  <!-- Manejo cuando no existen registros -->
   <div class="estado-vacio" *ngIf="!cargandoInicial && !errorConsulta && incidencias.length === 0">
     <ion-icon name="folder-open-outline" color="medium"></ion-icon>
     <h3>Sin incidencias registradas</h3>
@@ -37,21 +123,39 @@
     <ion-button color="warning" routerLink="/registro">Registrar primera incidencia</ion-button>
   </div>
 
-  <!-- Listado de Incidencias  -->
+  <!-- Sin resultados con los filtros activos -->
+  <div class="estado-vacio" *ngIf="!cargandoInicial && !errorConsulta && incidencias.length > 0 && incidenciasFiltradas.length === 0">
+    <ion-icon name="funnel-outline" color="primary"></ion-icon>
+    <h3>Sin coincidencias en este lote</h3>
+    <p>Ninguna de las incidencias cargadas coincide con tu búsqueda o filtros actuales.</p>
+    <ion-button fill="outline" color="primary" (click)="limpiarFiltros()">Restablecer filtros</ion-button>
+  </div>
+
+  <!-- Listado de Incidencias -->
   <ion-card
-    *ngFor="let item of incidencias"
+    *ngFor="let item of incidenciasFiltradas"
     class="incidencia-card"
+    [ngClass]="claseEstadoBorde(item.estado)"
     (click)="abrirDetalle(item.id)">
 
     <ion-card-header>
       <div class="top-row">
-        <!-- Campo 1: Código y Campo 7: Estado -->
-        <span class="codigo-tag">{{ item.codigo }}</span>
+        <!-- Campo 1: Código y Prioridad -->
+        <div class="tags-izquierda">
+          <span class="codigo-tag">{{ item.codigo }}</span>
+          <span class="prio-pill" [ngClass]="item.prioridad">
+            <ion-icon *ngIf="item.prioridad === 'alta'" name="flame-outline"></ion-icon>
+            Prioridad {{ item.prioridad | titlecase }}
+          </span>
+        </div>
+
+        <!-- Campo 7: Estado + Seguimiento -->
         <div class="acciones-top">
           <ion-badge [color]="colorEstado(item.estado)">{{ item.estado | uppercase }}</ion-badge>
           <ion-button
             fill="clear"
             size="small"
+            class="bookmark-btn"
             (click)="toggleSeguimiento($event, item.codigo)">
             <ion-icon
               slot="icon-only"
@@ -62,9 +166,14 @@
         </div>
       </div>
 
-      <!-- Campo 2: Tipo y Campo 6: Fecha -->
+      <!-- Campo 2: Tipo -->
       <ion-card-title>{{ item.tipo }}</ion-card-title>
-      <ion-card-subtitle>{{ item.fecha | date:'dd/MM/yyyy HH:mm' }} • Prioridad {{ item.prioridad }}</ion-card-subtitle>
+
+      <!-- Campo 6: Fecha -->
+      <div class="meta-fecha">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>{{ item.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
     </ion-card-header>
 
     <ion-card-content>
@@ -72,25 +181,32 @@
         <div class="textos">
           <!-- Campo 3: Descripción -->
           <p class="desc">{{ item.descripcion }}</p>
+
           <!-- Campo 5: Sector y Campo 4: Dirección -->
-          <p class="ubicacion">
-            <strong>Sector {{ item.sector }}:</strong> {{ item.direccion }}
-          </p>
+          <div class="ubicacion-chip">
+            <ion-icon name="location-outline"></ion-icon>
+            <span><strong>{{ item.sector }}:</strong> {{ item.direccion }}</span>
+          </div>
         </div>
 
-        <!-- Campo 8: Fotografía (si existe) -->
-        <ion-thumbnail *ngIf="item.fotografia" class="foto-mini">
-          <img [src]="item.fotografia" alt="Evidencia" />
-        </ion-thumbnail>
+        <!-- Campo 8: Fotografía optimizada desde Cloudinary (si existe) -->
+        <div class="thumb-wrapper" *ngIf="item.fotografia">
+          <ion-thumbnail class="foto-mini">
+            <img [src]="cloudinaryService.optimizarUrl(item.fotografia, 240)" alt="Evidencia" />
+          </ion-thumbnail>
+          <span class="cdn-dot" *ngIf="cloudinaryService.esUrlCloudinary(item.fotografia)" title="Alojada en Cloudinary CDN">
+            <ion-icon name="cloud-done-outline"></ion-icon>
+          </span>
+        </div>
       </div>
     </ion-card-content>
   </ion-card>
 
   <!-- Botón de respaldo por si en pantallas altas los primeros 5 registros no generan scroll vertical -->
   <div class="cargar-mas-box" *ngIf="!cargandoInicial && incidencias.length > 0 && !finDeRegistros && !cargandoMas">
-    <ion-button fill="clear" size="small" color="medium" (click)="cargarSiguientePagina()">
+    <ion-button fill="outline" size="small" color="primary" (click)="cargarSiguientePagina()">
       <ion-icon slot="start" name="arrow-down-circle-outline"></ion-icon>
-      Desliza hacia abajo o toca aquí para cargar más ({{ incidencias.length }} mostrados)
+      Cargar siguiente grupo ({{ incidencias.length }} cargadas)
     </ion-button>
   </div>
 
@@ -106,7 +222,7 @@
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
 
-  <!-- Indicador visual cuando ya no se solicitan más páginas  -->
+  <!-- Indicador visual cuando ya no se solicitan más páginas -->
   <div class="fin-lista" *ngIf="finDeRegistros && incidencias.length > 0">
     Has llegado al final de los registros ({{ incidencias.length }} mostrados). No se solicitan más páginas.
   </div>

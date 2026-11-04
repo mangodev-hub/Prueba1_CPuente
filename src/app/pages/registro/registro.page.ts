@@ -11,8 +11,9 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  camera, trash, locate, cloudDownload, warning, checkmarkCircle,
-  alertCircle, mapOutline, save, refresh
+  camera, imagesOutline, trash, locate, cloudDownload, cloudUploadOutline,
+  cloudDoneOutline, keyOutline, warning, checkmarkCircle, alertCircle,
+  mapOutline, save, refresh, thermometerOutline, rainyOutline, partlySunnyOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
@@ -21,6 +22,7 @@ import { IncidenciasService } from '../../core/services/incidencias';
 import { StorageService, BorradorIncidencia } from '../../core/services/storage';
 import { WeatherService } from '../../core/services/weather';
 import { LocationMediaService } from '../../core/services/location-media';
+import { CloudinaryService } from '../../core/services/cloudinary';
 import {
   ClimaInfo,
   PrioridadIncidencia,
@@ -52,6 +54,7 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
   private storageService = inject(StorageService);
   private weatherService = inject(WeatherService);
   private locationMediaService = inject(LocationMediaService);
+  readonly cloudinaryService = inject(CloudinaryService);
 
   form!: FormGroup;
   private subs = new Subscription();
@@ -67,9 +70,15 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
   ];
   readonly prioridades: PrioridadIncidencia[] = ['baja', 'media', 'alta'];
 
-  // Estados de Fotografía y Ubicación (R6 y R7)
+  // Estados de Fotografía y Cloudinary (R6)
   permisoCamaraDenegado = false;
   mensajeErrorCamara = '';
+  subiendoCloudinary = false;
+  errorCloudinary = '';
+  fotoBase64Respaldo: string | null = null;
+  infoSubidaCloudinary: { publicId?: string; tamanoKb?: number; formato?: string } | null = null;
+
+  // Estados de Ubicación (R7)
   obteniendoGps = false;
   mensajeEstadoGps = '';
 
@@ -91,8 +100,9 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
 
   constructor() {
     addIcons({
-      camera, trash, locate, cloudDownload, warning, checkmarkCircle,
-      alertCircle, mapOutline, save, refresh
+      camera, imagesOutline, trash, locate, cloudDownload, cloudUploadOutline,
+      cloudDoneOutline, keyOutline, warning, checkmarkCircle, alertCircle,
+      mapOutline, save, refresh, thermometerOutline, rainyOutline, partlySunnyOutline
     });
   }
 
@@ -115,6 +125,46 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     if (this.map) {
       this.map.remove();
     }
+  }
+
+  get paso1Completo(): boolean {
+    if (!this.form) return false;
+    return Boolean(
+      this.form.get('tipo')?.valid &&
+      this.form.get('sector')?.valid &&
+      this.form.get('direccion')?.valid &&
+      this.form.get('descripcion')?.valid
+    );
+  }
+
+  get paso2Completo(): boolean {
+    if (!this.form) return false;
+    const foto = this.form.get('fotografia')?.value;
+    if (this.form.get('prioridad')?.value === 'alta') {
+      return Boolean(foto);
+    }
+    return Boolean(foto) || this.paso1Completo;
+  }
+
+  get paso3Completo(): boolean {
+    if (!this.form) return false;
+    const lat = this.form.get('latitud')?.value;
+    const lng = this.form.get('longitud')?.value;
+    const tieneCoords = lat !== null && lat !== '' && lng !== null && lng !== '';
+    if (this.form.get('tipo')?.value === 'Bache') {
+      return tieneCoords;
+    }
+    return tieneCoords;
+  }
+
+  get esFotoCloudinary(): boolean {
+    const foto = this.form?.get('fotografia')?.value;
+    return this.cloudinaryService.esUrlCloudinary(foto);
+  }
+
+  seleccionarPrioridad(p: PrioridadIncidencia) {
+    this.form.patchValue({ prioridad: p });
+    this.cdr.markForCheck();
   }
 
   private inicializarFormulario() {
@@ -218,7 +268,6 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     const borrador = await this.storageService.obtenerBorrador();
     if (!borrador) return;
 
-    // Si ya confirmó "Continuar registro" en la alerta de inicio al abrir la app (R8)
     const continuarDirecto = this.route.snapshot.queryParamMap.get('continuarBorrador') === '1';
     if (continuarDirecto) {
       this.restaurarDatosBorrador(borrador);
@@ -263,6 +312,10 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
       longitud: borrador.longitud ?? null
     });
 
+    if (borrador.fotografia && !this.cloudinaryService.esUrlCloudinary(borrador.fotografia)) {
+      this.fotoBase64Respaldo = borrador.fotografia;
+    }
+
     if (borrador.clima) {
       this.climaActual = borrador.clima;
       this.climaConsultadoOIntentado = true;
@@ -278,18 +331,21 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     this.cdr.markForCheck();
   }
 
-  async capturarFoto() {
+  async capturarFoto(origen: 'prompt' | 'camara' | 'galeria' = 'prompt') {
     this.permisoCamaraDenegado = false;
     this.mensajeErrorCamara = '';
+    this.errorCloudinary = '';
     this.cdr.markForCheck();
 
-    const resultado = await this.locationMediaService.capturarFotografia();
+    const resultado = await this.locationMediaService.capturarFotografia(origen);
 
     if (resultado.estado === 'ok' && resultado.dataUrl) {
-      // Actualiza solo la fotografía conservando intacto el resto del formulario
+      this.fotoBase64Respaldo = resultado.dataUrl;
       this.form.patchValue({ fotografia: resultado.dataUrl });
       this.cdr.markForCheck();
-      this.mostrarToast('Evidencia fotográfica adjuntada correctamente.', 'success');
+
+      // Subir automáticamente la evidencia fotográfica a Cloudinary
+      await this.subirACloudinary(resultado.dataUrl);
       return;
     }
 
@@ -312,8 +368,84 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     }
   }
 
+  async subirACloudinary(dataUrl?: string): Promise<boolean> {
+    const origen = dataUrl || this.fotoBase64Respaldo || this.form.get('fotografia')?.value;
+    if (!origen || this.cloudinaryService.esUrlCloudinary(origen)) {
+      return true;
+    }
+
+    this.subiendoCloudinary = true;
+    this.errorCloudinary = '';
+    this.cdr.markForCheck();
+
+    const subida = await this.cloudinaryService.subirFotografia(origen);
+    this.subiendoCloudinary = false;
+
+    if (subida.exito && subida.url) {
+      this.form.patchValue({ fotografia: subida.url });
+      this.infoSubidaCloudinary = {
+        publicId: subida.publicId,
+        tamanoKb: subida.tamanoKb,
+        formato: subida.formato
+      };
+      this.cdr.markForCheck();
+      this.mostrarToast('Fotografía alojada en Cloudinary CDN con éxito.', 'success');
+      return true;
+    } else {
+      this.errorCloudinary = subida.mensajeError || 'No se pudo subir la imagen a Cloudinary.';
+      this.cdr.markForCheck();
+      return false;
+    }
+  }
+
+  async configurarCredencialesCloudinary() {
+    const alert = await this.alertCtrl.create({
+      header: `Cloudinary (${this.cloudinaryService.cloudName})`,
+      subHeader: `API Key activa: ${this.cloudinaryService.apiKey}`,
+      message: 'Ingresa tu API Secret de Cloudinary para subida firmada SHA-1 (o el nombre de un Upload Preset Unsigned):',
+      inputs: [
+        {
+          name: 'apiSecret',
+          type: 'password',
+          placeholder: 'Pega aquí tu API Secret de Cloudinary',
+          value: this.cloudinaryService.apiSecret
+        },
+        {
+          name: 'uploadPreset',
+          type: 'text',
+          placeholder: 'Upload Preset (opcional, ej: fotos)',
+          value: this.cloudinaryService.uploadPreset
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Guardar y Probar',
+          handler: async (data) => {
+            this.cloudinaryService.guardarConfiguracionLocal(
+              data.apiSecret || '',
+              data.uploadPreset || 'fotos'
+            );
+            this.mostrarToast('Credenciales de Cloudinary actualizadas.', 'primary');
+            if (this.fotoBase64Respaldo && !this.esFotoCloudinary) {
+              await this.subirACloudinary(this.fotoBase64Respaldo);
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
   eliminarFoto() {
     this.form.patchValue({ fotografia: null });
+    this.fotoBase64Respaldo = null;
+    this.infoSubidaCloudinary = null;
+    this.errorCloudinary = '';
     this.cdr.markForCheck();
   }
 
@@ -337,7 +469,6 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
       attribution: '© OpenStreetMap'
     }).addTo(this.map);
 
-    // Al tocar el mapa se asignan las coordenadas y se consulta el clima (R4 y R7)
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const lat = Number(e.latlng.lat.toFixed(6));
       const lng = Number(e.latlng.lng.toFixed(6));
@@ -441,7 +572,6 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     const latRaw = this.form.get('latitud')?.value;
     const lngRaw = this.form.get('longitud')?.value;
 
-    // Si ingresó coordenadas manuales fuera de rango, validar antes de consultar
     if (
       (latRaw !== null && latRaw !== '' && (isNaN(Number(latRaw)) || Number(latRaw) < -90 || Number(latRaw) > 90)) ||
       (lngRaw !== null && lngRaw !== '' && (isNaN(Number(lngRaw)) || Number(lngRaw) < -180 || Number(lngRaw) > 180))
@@ -511,6 +641,11 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
     if (this.form.invalid) {
       this.mostrarToast('Revise los campos obligatorios marcados en rojo antes de enviar.', 'danger');
       return;
+    }
+
+    // Si hay fotografía local que aún no se ha subido a Cloudinary, intentar subirla ahora
+    if (valores.fotografia && !this.esFotoCloudinary) {
+      await this.subirACloudinary(valores.fotografia);
     }
 
     // R4: Si no se ha consultado el clima para las coordenadas actuales, consultarlo y mostrar el resultado antes de guardar
@@ -648,6 +783,9 @@ export class RegistroPage implements OnInit, OnDestroy, ViewWillEnter, ViewDidEn
       latitud: null,
       longitud: null
     });
+    this.fotoBase64Respaldo = null;
+    this.infoSubidaCloudinary = null;
+    this.errorCloudinary = '';
     this.climaActual = null;
     this.errorClimaMensaje = '';
     this.climaConsultadoOIntentado = false;

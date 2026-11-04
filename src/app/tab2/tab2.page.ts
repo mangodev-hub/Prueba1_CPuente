@@ -1,22 +1,25 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-  IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+  IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonBadge, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent,
-  IonRefresher, IonRefresherContent, IonThumbnail, InfiniteScrollCustomEvent
+  IonRefresher, IonRefresherContent, IonThumbnail, IonSearchbar, InfiniteScrollCustomEvent
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   add, bookmark, bookmarkOutline, locationOutline, calendarOutline,
-  alertCircleOutline, folderOpenOutline, chevronForward, arrowDownCircleOutline
+  alertCircleOutline, folderOpenOutline, chevronForward, arrowDownCircleOutline,
+  searchOutline, funnelOutline, closeCircleOutline, cloudDoneOutline, flameOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 
 import { IncidenciasService } from '../core/services/incidencias';
 import { StorageService } from '../core/services/storage';
-import { Incidencia, EstadoIncidencia } from '../core/models/incidencia.model';
+import { CloudinaryService } from '../core/services/cloudinary';
+import { Incidencia, EstadoIncidencia, PrioridadIncidencia } from '../core/models/incidencia.model';
 
 @Component({
   selector: 'app-tab2',
@@ -24,21 +27,27 @@ import { Incidencia, EstadoIncidencia } from '../core/models/incidencia.model';
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, RouterModule,
+    CommonModule, FormsModule, RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-    IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonBadge, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent,
-    IonRefresher, IonRefresherContent, IonThumbnail
+    IonRefresher, IonRefresherContent, IonThumbnail, IonSearchbar
   ]
 })
 export class Tab2Page implements OnInit, OnDestroy {
   private incidenciasService = inject(IncidenciasService);
   private storageService = inject(StorageService);
+  readonly cloudinaryService = inject(CloudinaryService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   incidencias: Incidencia[] = [];
   codigosSeguidos: string[] = [];
+
+  // Búsqueda y filtros combinados para organización y usabilidad (R2)
+  textoBusqueda = '';
+  filtroEstado: 'todos' | EstadoIncidencia = 'todos';
+  filtroPrioridad: 'todas' | PrioridadIncidencia = 'todas';
 
   // R3: Parámetros de paginación remota en grupos pequeños
   paginaActual = 1;
@@ -54,7 +63,8 @@ export class Tab2Page implements OnInit, OnDestroy {
   constructor() {
     addIcons({
       add, bookmark, bookmarkOutline, locationOutline, calendarOutline,
-      alertCircleOutline, folderOpenOutline, chevronForward, arrowDownCircleOutline
+      alertCircleOutline, folderOpenOutline, chevronForward, arrowDownCircleOutline,
+      searchOutline, funnelOutline, closeCircleOutline, cloudDoneOutline, flameOutline
     });
   }
 
@@ -79,6 +89,48 @@ export class Tab2Page implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  get hayFiltrosActivos(): boolean {
+    return (
+      this.textoBusqueda.trim().length > 0 ||
+      this.filtroEstado !== 'todos' ||
+      this.filtroPrioridad !== 'todas'
+    );
+  }
+
+  get incidenciasFiltradas(): Incidencia[] {
+    const q = this.textoBusqueda.trim().toLowerCase();
+    return this.incidencias.filter(item => {
+      const cumpleEstado = this.filtroEstado === 'todos' || item.estado === this.filtroEstado;
+      const cumplePrioridad = this.filtroPrioridad === 'todas' || item.prioridad === this.filtroPrioridad;
+      const cumpleTexto =
+        !q ||
+        item.codigo?.toLowerCase().includes(q) ||
+        item.tipo?.toLowerCase().includes(q) ||
+        item.sector?.toLowerCase().includes(q) ||
+        item.direccion?.toLowerCase().includes(q) ||
+        item.descripcion?.toLowerCase().includes(q);
+
+      return cumpleEstado && cumplePrioridad && cumpleTexto;
+    });
+  }
+
+  seleccionarFiltroEstado(estado: 'todos' | EstadoIncidencia) {
+    this.filtroEstado = estado;
+    this.cdr.markForCheck();
+  }
+
+  seleccionarFiltroPrioridad(prioridad: 'todas' | PrioridadIncidencia) {
+    this.filtroPrioridad = prioridad;
+    this.cdr.markForCheck();
+  }
+
+  limpiarFiltros() {
+    this.textoBusqueda = '';
+    this.filtroEstado = 'todos';
+    this.filtroPrioridad = 'todas';
+    this.cdr.markForCheck();
   }
 
   reiniciarYCargar(refresherEvent?: any) {
@@ -173,5 +225,11 @@ export class Tab2Page implements OnInit, OnDestroy {
     if (estado === 'pendiente') return 'danger';
     if (estado === 'en proceso') return 'warning';
     return 'success';
+  }
+
+  claseEstadoBorde(estado: EstadoIncidencia): string {
+    if (estado === 'pendiente') return 'borde-pendiente';
+    if (estado === 'en proceso') return 'borde-proceso';
+    return 'borde-resuelta';
   }
 }

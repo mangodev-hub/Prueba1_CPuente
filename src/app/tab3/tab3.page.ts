@@ -4,14 +4,18 @@ import { Router, RouterModule } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
   IonCardTitle, IonCardSubtitle, IonCardContent, IonBadge, IonButton,
-  IonIcon, IonSpinner, ToastController, ViewWillEnter
+  IonIcon, IonSpinner, IonThumbnail, ToastController, AlertController, ViewWillEnter
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { bookmark, trashOutline, bookmarksOutline } from 'ionicons/icons';
+import {
+  bookmark, trashOutline, bookmarksOutline, locationOutline,
+  calendarOutline, cloudDoneOutline
+} from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 
 import { IncidenciasService } from '../core/services/incidencias';
 import { StorageService } from '../core/services/storage';
+import { CloudinaryService } from '../core/services/cloudinary';
 import { Incidencia, EstadoIncidencia } from '../core/models/incidencia.model';
 
 @Component({
@@ -23,25 +27,31 @@ import { Incidencia, EstadoIncidencia } from '../core/models/incidencia.model';
     CommonModule, RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardSubtitle, IonCardContent, IonBadge, IonButton,
-    IonIcon, IonSpinner
+    IonIcon, IonSpinner, IonThumbnail
   ],
 })
 export class Tab3Page implements OnInit, OnDestroy, ViewWillEnter {
   private incidenciasService = inject(IncidenciasService);
   private storageService = inject(StorageService);
+  readonly cloudinaryService = inject(CloudinaryService);
   private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   todasLasIncidencias: Incidencia[] = [];
   incidenciasSeguidas: Incidencia[] = [];
   codigosLocales: string[] = [];
+  filtroEstado: 'todos' | EstadoIncidencia = 'todos';
 
   cargando = false;
   private subs = new Subscription();
 
   constructor() {
-    addIcons({ bookmark, trashOutline, bookmarksOutline });
+    addIcons({
+      bookmark, trashOutline, bookmarksOutline, locationOutline,
+      calendarOutline, cloudDoneOutline
+    });
   }
 
   ngOnInit() {
@@ -67,6 +77,18 @@ export class Tab3Page implements OnInit, OnDestroy, ViewWillEnter {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  get seguidasFiltradas(): Incidencia[] {
+    if (this.filtroEstado === 'todos') {
+      return this.incidenciasSeguidas;
+    }
+    return this.incidenciasSeguidas.filter(i => i.estado === this.filtroEstado);
+  }
+
+  seleccionarFiltro(estado: 'todos' | EstadoIncidencia) {
+    this.filtroEstado = estado;
+    this.cdr.markForCheck();
   }
 
   sincronizarCatalogo() {
@@ -100,22 +122,41 @@ export class Tab3Page implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   /**
-   * R1: Al desmarcar una incidencia, desaparece inmediatamente del seguimiento
-   * sin alterar ni enviar datos al servicio de oficina (MockAPI).
+   * R1: Al desmarcar una incidencia, muestra confirmación y desaparece inmediatamente
+   * del seguimiento sin navegar al detalle ni modificar la API.
    */
   async quitarDeSeguimiento(event: Event, codigo: string) {
     event.stopPropagation();
     event.preventDefault();
-    await this.storageService.toggleSeguimiento(codigo);
-    this.cdr.markForCheck();
 
-    const toast = await this.toastCtrl.create({
-      message: `Incidencia ${codigo} retirada del seguimiento local (sin modificar la API).`,
-      duration: 2200,
-      color: 'medium',
-      position: 'bottom'
+    const alert = await this.alertCtrl.create({
+      header: 'Desmarcar seguimiento',
+      message: `¿Deseas retirar la incidencia ${codigo} de tu lista de seguimiento local?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Sí, retirar',
+          role: 'destructive',
+          handler: async () => {
+            await this.storageService.toggleSeguimiento(codigo);
+            this.cdr.markForCheck();
+
+            const toast = await this.toastCtrl.create({
+              message: `Incidencia ${codigo} retirada del seguimiento local.`,
+              duration: 2200,
+              color: 'medium',
+              position: 'bottom'
+            });
+            await toast.present();
+          }
+        }
+      ]
     });
-    await toast.present();
+
+    await alert.present();
   }
 
   colorEstado(estado: EstadoIncidencia): string {
@@ -124,4 +165,3 @@ export class Tab3Page implements OnInit, OnDestroy, ViewWillEnter {
     return 'success';
   }
 }
-

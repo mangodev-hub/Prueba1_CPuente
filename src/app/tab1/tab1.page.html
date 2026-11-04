@@ -9,9 +9,19 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Cabecera Institucional Quito -->
+  <!-- Cabecera Institucional Quito Refinada -->
   <div class="quito-top-hero">
     <div class="quito-escudo-box">
+      <div class="hero-top-badges">
+        <span class="status-pill online">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          DMQ Operativo
+        </span>
+        <span class="status-pill cloud">
+          <ion-icon name="cloud-done-outline"></ion-icon>
+          Cloudinary: {{ cloudinaryService.cloudName }}
+        </span>
+      </div>
       <ion-icon name="flame-outline" class="escudo-icono"></ion-icon>
       <span class="quito-palabra">Quito</span>
       <span class="quito-sub">ALCALDÍA METROPOLITANA • URBANINSPECT</span>
@@ -20,20 +30,52 @@
 
   <!-- Botones de acción rápida estilo "Mis Trámites / Mi Buzón" -->
   <div class="acciones-rapidas">
-    <div class="pill-action" routerLink="/registro">
-      <span>Nueva<br />Incidencia</span>
-      <ion-icon name="add-circle"></ion-icon>
+    <div class="pill-action primary-action" routerLink="/registro">
+      <div class="pill-texts">
+        <span class="pill-title">Nueva Incidencia</span>
+        <small>Captura GPS + Cloudinary</small>
+      </div>
+      <div class="pill-icon-wrap">
+        <ion-icon name="add-circle"></ion-icon>
+      </div>
     </div>
 
-    <div class="pill-action" routerLink="/tabs/tab3">
-      <span>Mi<br />Seguimiento</span>
-      <ion-icon name="bookmark-outline"></ion-icon>
+    <div class="pill-action secondary-action" routerLink="/tabs/tab3">
+      <div class="pill-texts">
+        <span class="pill-title">Mi Seguimiento</span>
+        <small>{{ enSeguimientoLocal }} marcadas</small>
+      </div>
+      <div class="pill-icon-wrap">
+        <ion-icon name="bookmark-outline"></ion-icon>
+      </div>
     </div>
   </div>
 
+  <!-- Aviso de Borrador Pendiente (R8) -->
   <div class="borrador-banner" *ngIf="tieneBorradorPendiente" routerLink="/registro">
     <ion-icon name="document-text-outline"></ion-icon>
-    <span>Registro incompleto guardado. Toca aquí para continuar o descartar.</span>
+    <div class="borrador-txt">
+      <strong>Borrador en progreso detectado</strong>
+      <span>Toca aquí para continuar o descartar tu registro pendiente</span>
+    </div>
+    <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+  </div>
+
+  <!-- Barra de Avance Operativo Municipal -->
+  <div class="progreso-card" *ngIf="totalIncidencias > 0">
+    <div class="progreso-header">
+      <span>Tasa de Resolución Municipal</span>
+      <strong>{{ porcentajeResolucion }}% resueltas</strong>
+    </div>
+    <div class="progreso-barra">
+      <div class="seg-resuelta" [style.width.%]="porcentajeResolucion"></div>
+      <div class="seg-proceso" [style.width.%]="porcentajeEnProceso"></div>
+    </div>
+    <div class="progreso-leyenda">
+      <span><i class="dot verde"></i> {{ resueltas }} Resueltas</span>
+      <span><i class="dot ambar"></i> {{ enProceso }} En Proceso</span>
+      <span><i class="dot rojo"></i> {{ pendientes }} Pendientes</span>
+    </div>
   </div>
 
   <div class="seccion-titulo">
@@ -47,13 +89,15 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Cuadrícula 2 columnas estilo "Servicios / Certificados" -->
+  <!-- Cuadrícula Bento 2 columnas -->
   <ion-grid class="ion-no-padding">
     <ion-row>
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab2">
           <span class="tile-badge">Oficina</span>
-          <ion-icon name="list-outline" class="tile-icon azul"></ion-icon>
+          <div class="icon-circle azul">
+            <ion-icon name="list-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ totalIncidencias }}</span>
           <span class="kpi-label">Total Registradas</span>
         </div>
@@ -62,7 +106,9 @@
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab2">
           <span class="tile-badge rojo" *ngIf="pendientes > 0">Atención</span>
-          <ion-icon name="alert-circle-outline" class="tile-icon rojo"></ion-icon>
+          <div class="icon-circle rojo">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ pendientes }}</span>
           <span class="kpi-label">Pendientes</span>
         </div>
@@ -70,7 +116,9 @@
 
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab2">
-          <ion-icon name="time-outline" class="tile-icon ambar"></ion-icon>
+          <div class="icon-circle ambar">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ enProceso }}</span>
           <span class="kpi-label">En Proceso</span>
         </div>
@@ -78,7 +126,9 @@
 
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab2">
-          <ion-icon name="checkmark-done-outline" class="tile-icon verde"></ion-icon>
+          <div class="icon-circle verde">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ resueltas }}</span>
           <span class="kpi-label">Resueltas</span>
         </div>
@@ -87,7 +137,9 @@
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab2">
           <span class="tile-badge rojo">Urgente</span>
-          <ion-icon name="flame-outline" class="tile-icon rojo"></ion-icon>
+          <div class="icon-circle rojo">
+            <ion-icon name="flame-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ prioridadAlta }}</span>
           <span class="kpi-label">Prioridad Alta</span>
         </div>
@@ -96,7 +148,9 @@
       <ion-col size="6">
         <div class="kpi-tile" routerLink="/tabs/tab3">
           <span class="tile-badge">Local</span>
-          <ion-icon name="bookmark-outline" class="tile-icon azul"></ion-icon>
+          <div class="icon-circle azul">
+            <ion-icon name="bookmark-outline"></ion-icon>
+          </div>
           <span class="kpi-numero">{{ enSeguimientoLocal }}</span>
           <span class="kpi-label">Mi Seguimiento</span>
         </div>

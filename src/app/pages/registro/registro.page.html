@@ -1,36 +1,105 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar color="dark">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/tab1" text="Volver"></ion-back-button>
     </ion-buttons>
-    <ion-title>Nueva Incidencia</ion-title>
+    <ion-title>Registrar Incidencia</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="configurarCredencialesCloudinary()" title="Configurar Cloudinary">
+        <ion-icon slot="icon-only" name="key-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+  <!-- Barra de progreso de pasos de inspección -->
+  <div class="stepper-bar">
+    <div class="step-pill" [class.done]="paso1Completo">
+      <span class="step-num">1</span>
+      <span class="step-txt">Hallazgo</span>
+    </div>
+    <div class="step-line" [class.done]="paso1Completo"></div>
+    <div class="step-pill" [class.done]="esFotoCloudinary || (form.get('fotografia')?.value)">
+      <span class="step-num">2</span>
+      <span class="step-txt">Cloudinary</span>
+    </div>
+    <div class="step-line" [class.done]="paso3Completo"></div>
+    <div class="step-pill" [class.done]="paso3Completo">
+      <span class="step-num">3</span>
+      <span class="step-txt">GPS</span>
+    </div>
+    <div class="step-line" [class.done]="climaConsultadoOIntentado"></div>
+    <div class="step-pill" [class.done]="climaConsultadoOIntentado">
+      <span class="step-num">4</span>
+      <span class="step-txt">Clima</span>
+    </div>
+  </div>
+
   <form [formGroup]="form" (ngSubmit)="guardarIncidencia()">
 
-   
-    <ion-card>
+    <!-- SECCIÓN 1: DATOS DEL HALLAZGO -->
+    <ion-card class="form-section-card">
       <ion-card-header>
-        <ion-card-title>1. Datos del Hallazgo</ion-card-title>
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <span class="section-step-badge">PASO 1</span>
+            <ion-card-title>Datos del Hallazgo</ion-card-title>
+          </div>
+          <ion-icon
+            *ngIf="paso1Completo"
+            name="checkmark-circle"
+            color="success"
+            class="step-check-icon">
+          </ion-icon>
+        </div>
       </ion-card-header>
-      <ion-card-content>
-        <ion-list lines="full">
 
-         
+      <ion-card-content>
+        <!-- Selector visual de Prioridad -->
+        <div class="field-label-top">Nivel de Prioridad Operativa *</div>
+        <div class="priority-pills">
+          <button
+            type="button"
+            class="priority-pill baja"
+            [class.selected]="form.get('prioridad')?.value === 'baja'"
+            (click)="seleccionarPrioridad('baja')">
+            <span class="dot"></span>
+            <div>
+              <strong>Baja</strong>
+              <small>Foto opcional</small>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="priority-pill media"
+            [class.selected]="form.get('prioridad')?.value === 'media'"
+            (click)="seleccionarPrioridad('media')">
+            <span class="dot"></span>
+            <div>
+              <strong>Media</strong>
+              <small>Foto opcional</small>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="priority-pill alta"
+            [class.selected]="form.get('prioridad')?.value === 'alta'"
+            (click)="seleccionarPrioridad('alta')">
+            <span class="dot"></span>
+            <div>
+              <strong>Alta</strong>
+              <small>Exige foto</small>
+            </div>
+          </button>
+        </div>
+
+        <ion-list lines="none" class="custom-form-list">
           <ion-item>
             <ion-select label="Tipo de incidencia *" labelPlacement="stacked" formControlName="tipo">
               <ion-select-option *ngFor="let t of tipos" [value]="t">{{ t }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          
-          <ion-item>
-            <ion-select label="Prioridad *" labelPlacement="stacked" formControlName="prioridad">
-              <ion-select-option value="baja">Baja (Foto opcional)</ion-select-option>
-              <ion-select-option value="media">Media (Foto opcional)</ion-select-option>
-              <ion-select-option value="alta">Alta (Exige fotografía)</ion-select-option>
             </ion-select>
           </ion-item>
 
@@ -46,7 +115,6 @@
             El sector es obligatorio.
           </ion-note>
 
-         
           <ion-item>
             <ion-input
               label="Dirección o referencia vial *"
@@ -59,7 +127,6 @@
             Ingrese una dirección válida (mínimo 5 caracteres).
           </ion-note>
 
-        
           <ion-item>
             <ion-textarea
               label="Descripción detallada *"
@@ -72,27 +139,57 @@
           <ion-note color="danger" class="error-msg" *ngIf="form.get('descripcion')?.touched && form.get('descripcion')?.invalid">
             La descripción es obligatoria (mínimo 10 caracteres).
           </ion-note>
-
         </ion-list>
       </ion-card-content>
     </ion-card>
 
-    
-    <ion-card>
+    <!-- SECCIÓN 2: EVIDENCIA FOTOGRÁFICA EN CLOUDINARY -->
+    <ion-card class="form-section-card">
       <ion-card-header>
-        <ion-card-title>
-          2. Evidencia Fotográfica
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <span class="section-step-badge">PASO 2 • CLOUDINARY CDN</span>
+            <ion-card-title>Evidencia Fotográfica</ion-card-title>
+          </div>
           <ion-badge [color]="form.get('prioridad')?.value === 'alta' ? 'danger' : 'medium'">
             {{ form.get('prioridad')?.value === 'alta' ? 'OBLIGATORIA' : 'OPCIONAL' }}
           </ion-badge>
-        </ion-card-title>
+        </div>
       </ion-card-header>
 
       <ion-card-content>
-        <ion-button expand="block" color="secondary" type="button" (click)="capturarFoto()">
-          <ion-icon name="camera" slot="start"></ion-icon>
-          {{ form.get('fotografia')?.value ? 'Cambiar Fotografía' : 'Capturar Fotografía' }}
-        </ion-button>
+        <div class="cloudinary-info-bar">
+          <div class="cloud-meta">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            <span>Cloud: <strong>{{ cloudinaryService.cloudName }}</strong> • Key: <strong>fotos</strong></span>
+          </div>
+          <button type="button" class="config-link-btn" (click)="configurarCredencialesCloudinary()">
+            <ion-icon name="key-outline"></ion-icon>
+            API Secret
+          </button>
+        </div>
+
+        <!-- Botones de captura dual (Cámara / Galería) -->
+        <div class="captura-botones-grid">
+          <ion-button expand="block" color="primary" type="button" (click)="capturarFoto('camara')" [disabled]="subiendoCloudinary">
+            <ion-icon name="camera" slot="start"></ion-icon>
+            Usar Cámara
+          </ion-button>
+
+          <ion-button expand="block" color="secondary" type="button" (click)="capturarFoto('galeria')" [disabled]="subiendoCloudinary">
+            <ion-icon name="images-outline" slot="start"></ion-icon>
+            Abrir Galería
+          </ion-button>
+        </div>
+
+        <!-- Estado subiendo a Cloudinary -->
+        <div class="cloudinary-uploading-box" *ngIf="subiendoCloudinary">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <div>
+            <strong>Subiendo imagen a Cloudinary ({{ cloudinaryService.cloudName }})...</strong>
+            <p>Optimizando y generando URL segura en la nube</p>
+          </div>
+        </div>
 
         <!-- Alerta de permiso denegado (R6) -->
         <div class="alert-box danger" *ngIf="permisoCamaraDenegado || mensajeErrorCamara">
@@ -105,26 +202,62 @@
           </span>
         </div>
 
-       
-        <div class="foto-preview" *ngIf="form.get('fotografia')?.value as foto">
-          <img [src]="foto" alt="Previsualización de evidencia" />
-          <ion-button fill="outline" color="danger" size="small" type="button" (click)="eliminarFoto()">
-            <ion-icon name="trash" slot="start"></ion-icon>
-            Quitar fotografía
-          </ion-button>
+        <!-- Aviso si falta configurar API Secret / Preset en Cloudinary -->
+        <div class="alert-box warning" *ngIf="errorCloudinary && !subiendoCloudinary">
+          <ion-icon name="warning"></ion-icon>
+          <div class="alert-flex-col">
+            <span>{{ errorCloudinary }}</span>
+            <div class="alert-actions">
+              <ion-button size="small" fill="solid" color="warning" type="button" (click)="configurarCredencialesCloudinary()">
+                <ion-icon name="key-outline" slot="start"></ion-icon>
+                Ingresar API Secret
+              </ion-button>
+              <ion-button size="small" fill="outline" color="light" type="button" (click)="subirACloudinary()">
+                <ion-icon name="refresh" slot="start"></ion-icon>
+                Reintentar subida
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista previa de la fotografía -->
+        <div class="foto-preview-card" *ngIf="form.get('fotografia')?.value as foto">
+          <div class="foto-wrapper">
+            <img [src]="cloudinaryService.optimizarUrl(foto, 900)" alt="Previsualización de evidencia" />
+            <span class="cloud-badge" [class.synced]="esFotoCloudinary">
+              <ion-icon [name]="esFotoCloudinary ? 'cloud-done-outline' : 'cloud-upload-outline'"></ion-icon>
+              {{ esFotoCloudinary ? 'Alojada en Cloudinary CDN' : 'Lista en dispositivo (Pendiente nube)' }}
+            </span>
+          </div>
+
+          <div class="foto-meta-footer">
+            <div class="meta-details" *ngIf="esFotoCloudinary">
+              <span class="url-pill">{{ foto }}</span>
+              <small *ngIf="infoSubidaCloudinary as info">
+                Formato {{ info.formato | uppercase }} • {{ info.tamanoKb }} KB
+              </small>
+            </div>
+            <ion-button fill="outline" color="danger" size="small" type="button" (click)="eliminarFoto()">
+              <ion-icon name="trash" slot="start"></ion-icon>
+              Quitar
+            </ion-button>
+          </div>
         </div>
       </ion-card-content>
     </ion-card>
 
-  
-    <ion-card>
+    <!-- SECCIÓN 3: UBICACIÓN GEOGRÁFICA -->
+    <ion-card class="form-section-card">
       <ion-card-header>
-        <ion-card-title>
-          3. Ubicación Geográfica
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <span class="section-step-badge">PASO 3 • GEOLOCALIZACIÓN</span>
+            <ion-card-title>Ubicación Geográfica</ion-card-title>
+          </div>
           <ion-badge [color]="form.get('tipo')?.value === 'Bache' ? 'danger' : 'tertiary'">
             {{ form.get('tipo')?.value === 'Bache' ? 'OBLIGATORIA (BACHE)' : 'OPCIONAL' }}
           </ion-badge>
-        </ion-card-title>
+        </div>
       </ion-card-header>
 
       <ion-card-content>
@@ -134,17 +267,18 @@
           Obtener Coordenadas por GPS
         </ion-button>
 
-        <p class="gps-status" *ngIf="mensajeEstadoGps">{{ mensajeEstadoGps }}</p>
+        <p class="gps-status" *ngIf="mensajeEstadoGps">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          {{ mensajeEstadoGps }}
+        </p>
 
-       
         <div class="mapa-instruccion">
           <ion-icon name="map-outline"></ion-icon>
-          <span>Toque un punto en el mapa de Quito o ingrese las coordenadas manualmente:</span>
+          <span>Toque un punto en el mapa interactivo de Quito o edite las coordenadas:</span>
         </div>
         <div id="mapa-registro" class="mapa-contenedor"></div>
 
-        
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding coords-grid">
           <ion-row>
             <ion-col size="6">
               <ion-item>
@@ -173,17 +307,28 @@
           </ion-row>
         </ion-grid>
 
-        <ion-button expand="block" color="primary" type="button" (click)="usarCoordenadasManuales()">
+        <ion-button expand="block" color="primary" fill="outline" type="button" (click)="usarCoordenadasManuales()">
           <ion-icon name="cloud-download" slot="start"></ion-icon>
-          Ubicar Coordenadas Manuales y Consultar Clima
+          Aplicar Coordenadas Manuales y Consultar Clima
         </ion-button>
       </ion-card-content>
     </ion-card>
 
-   
-    <ion-card>
+    <!-- SECCIÓN 4: CONDICIONES METEOROLÓGICAS -->
+    <ion-card class="form-section-card">
       <ion-card-header>
-        <ion-card-title>4. Condiciones Meteorológicas (Open-Meteo)</ion-card-title>
+        <div class="section-header-row">
+          <div class="section-title-group">
+            <span class="section-step-badge">PASO 4 • OPEN-METEO API</span>
+            <ion-card-title>Condiciones Meteorológicas</ion-card-title>
+          </div>
+          <ion-icon
+            *ngIf="climaActual"
+            name="checkmark-circle"
+            color="success"
+            class="step-check-icon">
+          </ion-icon>
+        </div>
       </ion-card-header>
 
       <ion-card-content>
@@ -193,24 +338,35 @@
           Consultar Clima del Lugar Ahora
         </ion-button>
 
-     
-        <div class="clima-panel" *ngIf="climaActual">
-          <div class="clima-datos">
-            <div><strong>Temperatura actual:</strong> {{ climaActual.temperatura }} °C</div>
-            <div><strong>Precipitación (última hora):</strong> {{ climaActual.precipitacionMm }} mm</div>
-            <div><strong>Condición:</strong> {{ climaActual.condicion }}</div>
+        <div class="clima-bento" *ngIf="climaActual">
+          <div class="clima-metrics-grid">
+            <div class="clima-metric-box">
+              <ion-icon name="thermometer-outline" class="temp-icon"></ion-icon>
+              <span class="metric-val">{{ climaActual.temperatura }} °C</span>
+              <span class="metric-lbl">Temperatura</span>
+            </div>
+
+            <div class="clima-metric-box">
+              <ion-icon name="rainy-outline" class="rain-icon"></ion-icon>
+              <span class="metric-val">{{ climaActual.precipitacionMm }} mm</span>
+              <span class="metric-lbl">Precipitación (1h)</span>
+            </div>
+
+            <div class="clima-metric-box">
+              <ion-icon name="partly-sunny-outline" class="sky-icon"></ion-icon>
+              <span class="metric-val condicion-txt">{{ climaActual.condicion }}</span>
+              <span class="metric-lbl">Condición</span>
+            </div>
           </div>
 
-        
           <div class="alert-box warning" *ngIf="climaActual.alertaMantenimiento">
             <ion-icon name="warning"></ion-icon>
             <span>
-              <strong>Advertencia de mantenimiento:</strong> La precipitación acumulada en la última hora supera los 5 mm ({{ climaActual.precipitacionMm }} mm). Las condiciones meteorológicas podrían dificultar las labores de mantenimiento en campo (el registro no se bloquea).
+              <strong>Advertencia de mantenimiento:</strong> La precipitación acumulada supera los 5 mm ({{ climaActual.precipitacionMm }} mm). Las condiciones podrían dificultar las labores en campo (el registro no se bloquea).
             </span>
           </div>
         </div>
 
-        
         <div class="alert-box warning" *ngIf="errorClimaMensaje">
           <ion-icon name="alert-circle"></ion-icon>
           <span>{{ errorClimaMensaje }}</span>
@@ -218,9 +374,9 @@
       </ion-card-content>
     </ion-card>
 
-   
-    <div class="ion-padding-bottom">
-      <ion-button expand="block" size="large" color="success" type="submit" [disabled]="guardando">
+    <!-- BOTÓN DE GUARDADO FINAL -->
+    <div class="submit-footer ion-padding-bottom">
+      <ion-button expand="block" size="large" color="success" type="submit" [disabled]="guardando || subiendoCloudinary">
         <ion-spinner *ngIf="guardando" name="crescent" slot="start"></ion-spinner>
         <ion-icon *ngIf="!guardando" name="save" slot="start"></ion-icon>
         Guardar Incidencia en Oficina

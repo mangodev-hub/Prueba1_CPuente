@@ -21,11 +21,8 @@ export interface ResultadoUbicacion {
 })
 export class LocationMediaService {
 
- 
-
-  async capturarFotografia(): Promise<ResultadoFoto> {
+  async capturarFotografia(origen: 'prompt' | 'camara' | 'galeria' = 'prompt'): Promise<ResultadoFoto> {
     try {
-      
       if (Capacitor.isNativePlatform()) {
         const estadoPermisos = await Camera.checkPermissions();
         if (estadoPermisos.camera === 'denied') {
@@ -39,13 +36,18 @@ export class LocationMediaService {
         }
       }
 
-     
+      const sourceMap: Record<'prompt' | 'camara' | 'galeria', CameraSource> = {
+        prompt: CameraSource.Prompt,
+        camara: CameraSource.Camera,
+        galeria: CameraSource.Photos
+      };
+
       const photo = await Camera.getPhoto({
-        quality: 60,
-        width: 600,
+        quality: 78,
+        width: 1024,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Prompt, 
+        source: sourceMap[origen],
         promptLabelHeader: 'Evidencia Fotográfica',
         promptLabelPhoto: 'Elegir de la galería',
         promptLabelPicture: 'Tomar fotografía'
@@ -55,12 +57,11 @@ export class LocationMediaService {
         return { estado: 'cancelado' };
       }
 
-     
-      const comprimida = await this.comprimirBase64(photo.dataUrl, 600, 0.5);
+      const optimizada = await this.comprimirBase64(photo.dataUrl, 960, 0.72);
 
       return {
         estado: 'ok',
-        dataUrl: comprimida
+        dataUrl: optimizada
       };
 
     } catch (error: any) {
@@ -71,7 +72,6 @@ export class LocationMediaService {
         return { estado: 'cancelado' };
       }
 
-      
       if (msg.includes('permission') || msg.includes('denied')) {
         return {
           estado: 'permiso_denegado',
@@ -86,7 +86,6 @@ export class LocationMediaService {
     }
   }
 
-  
   private comprimirBase64(dataUrl: string, maxWidth: number, quality: number): Promise<string> {
     return new Promise((resolve) => {
       const img = new Image();
@@ -114,8 +113,6 @@ export class LocationMediaService {
       img.src = dataUrl;
     });
   }
-
- 
 
   async obtenerCoordenadasActuales(): Promise<ResultadoUbicacion> {
     try {

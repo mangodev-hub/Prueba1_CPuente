@@ -1,3 +1,49 @@
+.quito-top-hero {
+  margin-bottom: 14px;
+}
+
+.quito-escudo-box {
+  background: linear-gradient(145deg, #162393 0%, #0e165c 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 20px;
+  padding: 14px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+
+  .hero-top-badges {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-size: 0.66rem;
+    font-weight: 700;
+
+    &.online {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+
+    &.cloud {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+  }
+}
+
 .acciones-rapidas {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6,42 +52,166 @@
 }
 
 .pill-action {
-  background: #0072ce;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: #fff;
-  font-weight: 700;
-  font-size: 0.92rem;
-  line-height: 1.2;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 114, 206, 0.35);
+  transition: transform 0.18s ease;
 
-  ion-icon {
-    font-size: 2rem;
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.primary-action {
+    background: linear-gradient(135deg, #0072ce 0%, #0284c7 100%);
+    box-shadow: 0 6px 16px rgba(0, 114, 206, 0.38);
+  }
+
+  &.secondary-action {
+    background: linear-gradient(135deg, #1e2952 0%, #151e3d 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+  }
+
+  .pill-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .pill-title {
+      font-weight: 800;
+      font-size: 0.9rem;
+      line-height: 1.15;
+    }
+
+    small {
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .pill-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.5rem;
+    }
   }
 }
 
 .borrador-banner {
   margin-bottom: 14px;
-  padding: 12px;
-  background: #1e2746;
+  padding: 12px 14px;
+  background: rgba(227, 6, 19, 0.14);
+  border: 1px solid rgba(227, 6, 19, 0.4);
   border-left: 4px solid #e30613;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   color: #fff;
-  font-size: 0.85rem;
   cursor: pointer;
 
   ion-icon {
-    font-size: 1.4rem;
-    color: #e30613;
+    font-size: 1.5rem;
+    color: #ff4d58;
     flex-shrink: 0;
+  }
+
+  .borrador-txt {
+    flex: 1;
+
+    strong {
+      display: block;
+      font-size: 0.84rem;
+      color: #ffffff;
+    }
+
+    span {
+      font-size: 0.75rem;
+      color: #fecdd3;
+    }
+  }
+
+  .arrow-icon {
+    font-size: 1.1rem;
+    color: #fca5a5;
+  }
+}
+
+.progreso-card {
+  background: #17203b;
+  border: 1px solid rgba(154, 176, 230, 0.16);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+
+  .progreso-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #9ab0e6;
+    margin-bottom: 8px;
+
+    strong {
+      color: #34d399;
+      font-weight: 800;
+    }
+  }
+
+  .progreso-barra {
+    height: 8px;
+    border-radius: 99px;
+    background: rgba(227, 6, 19, 0.35);
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 8px;
+
+    .seg-resuelta {
+      background: #10b981;
+      height: 100%;
+    }
+
+    .seg-proceso {
+      background: #f59e0b;
+      height: 100%;
+    }
+  }
+
+  .progreso-leyenda {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #cbd5e1;
+    font-weight: 600;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+
+      &.verde { background: #10b981; }
+      &.ambar { background: #f59e0b; }
+      &.rojo { background: #e30613; }
+    }
   }
 }
 
@@ -49,28 +219,35 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 4px 10px;
+  margin: 6px 4px 10px;
 
   h2 {
-    font-size: 1rem;
+    font-size: 0.96rem;
     font-weight: 800;
     color: #9ab0e6;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 }
 
 .kpi-tile {
   position: relative;
   margin: 6px;
-  padding: 20px 12px 16px;
-  background: #1e2746;
-  border: 1px solid rgba(154, 176, 230, 0.12);
+  padding: 18px 12px 16px;
+  background: linear-gradient(160deg, #1e2746 0%, #151d36 100%);
+  border: 1px solid rgba(154, 176, 230, 0.15);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   cursor: pointer;
+  transition: transform 0.18s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
 
   .tile-badge {
     position: absolute;
@@ -78,7 +255,7 @@
     right: 10px;
     background: #0084d1;
     color: #fff;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 10px;
@@ -86,13 +263,38 @@
     &.rojo { background: #e30613; }
   }
 
-  .tile-icon {
-    font-size: 2.1rem;
-    margin-bottom: 6px;
-    &.azul { color: #38bdf8; }
-    &.rojo { color: #ff4d58; }
-    &.ambar { color: #fbbf24; }
-    &.verde { color: #34d399; }
+  .icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+
+    ion-icon {
+      font-size: 1.5rem;
+    }
+
+    &.azul {
+      background: rgba(56, 189, 248, 0.14);
+      color: #38bdf8;
+    }
+
+    &.rojo {
+      background: rgba(255, 77, 88, 0.15);
+      color: #ff4d58;
+    }
+
+    &.ambar {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    &.verde {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+    }
   }
 
   .kpi-numero {
@@ -103,7 +305,7 @@
   }
 
   .kpi-label {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     margin-top: 4px;
     font-weight: 600;
     color: #9ab0e6;

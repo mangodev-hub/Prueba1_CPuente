@@ -11,12 +11,14 @@ import {
 import { addIcons } from 'ionicons';
 import {
   bookmark, bookmarkOutline, locationOutline, calendarOutline,
-  thermometerOutline, rainyOutline, checkmarkDoneCircle, lockClosed, alertCircle
+  thermometerOutline, rainyOutline, partlySunnyOutline, checkmarkDoneCircle,
+  lockClosed, alertCircle, cloudDoneOutline, expandOutline, closeOutline, navigateOutline
 } from 'ionicons/icons';
 import * as L from 'leaflet';
 
 import { IncidenciasService } from '../../core/services/incidencias';
 import { StorageService } from '../../core/services/storage';
+import { CloudinaryService } from '../../core/services/cloudinary';
 import { Incidencia, EstadoIncidencia } from '../../core/models/incidencia.model';
 
 @Component({
@@ -36,6 +38,7 @@ export class DetallePage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private incidenciasService = inject(IncidenciasService);
   private storageService = inject(StorageService);
+  readonly cloudinaryService = inject(CloudinaryService);
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
   private cdr = inject(ChangeDetectorRef);
@@ -52,13 +55,17 @@ export class DetallePage implements OnInit, OnDestroy {
   observacionInput = '';
   actualizando = false;
 
+  // Visor ampliado de fotografía
+  fotoAmpliada = false;
+
   // Mapa Leaflet de solo lectura
   private map: L.Map | null = null;
 
   constructor() {
     addIcons({
       bookmark, bookmarkOutline, locationOutline, calendarOutline,
-      thermometerOutline, rainyOutline, checkmarkDoneCircle, lockClosed, alertCircle
+      thermometerOutline, rainyOutline, partlySunnyOutline, checkmarkDoneCircle,
+      lockClosed, alertCircle, cloudDoneOutline, expandOutline, closeOutline, navigateOutline
     });
   }
 
@@ -121,6 +128,11 @@ export class DetallePage implements OnInit, OnDestroy {
       return ['resuelta'];
     }
     return [];
+  }
+
+  toggleFotoAmpliada() {
+    this.fotoAmpliada = !this.fotoAmpliada;
+    this.cdr.markForCheck();
   }
 
   async toggleSeguimientoLocal() {
@@ -220,4 +232,3 @@ export class DetallePage implements OnInit, OnDestroy {
     await alert.present();
   }
 }
-

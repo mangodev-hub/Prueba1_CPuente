@@ -77,10 +77,20 @@ De acuerdo con la **Sección 4 (Restricciones y condiciones)**, cada dependencia
 - Se utiliza el recurso REST de incidencias en MockAPI consumido mediante `HttpClient` en `IncidenciasService`.
 - **Paginación remota (`R3`):** El listado (`Tab2Page`) solicita grupos pequeños de **5 registros por página** enviando los parámetros `?page=X&limit=5&sortBy=fecha&order=desc`. Cuando el número de registros recibidos es menor al tamaño de página (`< 5`) o vacío (`0`), se marca `finDeRegistros = true` y se desactiva el componente `ion-infinite-scroll` para no realizar peticiones adicionales.
 
-### 4.3 Persistencia de fotografías accesibles desde el detalle (`R6` y Sección 4)
-- Para cumplir la restricción *"La fotografía debe permanecer accesible desde el detalle una vez guardado el registro; no basta con guardar una ruta temporal del dispositivo en la API"*, `LocationMediaService` procesa la imagen capturada mediante un `<canvas>` HTML5, redimensionándola a un ancho máximo de `600px` y comprimiéndola en formato JPEG (`DataURL Base64` al `50%` de calidad). De esta forma, la evidencia viaja y persiste directamente dentro del registro en MockAPI sin depender del sistema de archivos local del teléfono que la tomó.
+### 4.3 Almacenamiento en la nube de Evidencia Fotográfica con **Cloudinary CDN** (`R6` y Correcciones)
+- En la rama `correcciones-prueba1` (conservando `main` intacta como evidencia original), se implementó el servicio `CloudinaryService` (`src/app/core/services/cloudinary.ts`) conectado al entorno de Cloudinary (`cloud_name: dsebmsrno`, `API Key: 557895777321696`, `Key Name: fotos`).
+- **Flujo de subida y optimización:**
+  1. Al capturar una fotografía desde la **Cámara** o **Galería** (`LocationMediaService`), la imagen se optimiza en cliente y se sube automáticamente mediante petición `POST` multipart a `https://api.cloudinary.com/v1_1/dsebmsrno/image/upload`.
+  2. Soporta tanto **Subida Firmada (Signed Upload con firma criptográfica SHA-1)** como **Subida con Upload Preset (`fotos`)**, almacenando en MockAPI únicamente la URL segura permanente (`https://res.cloudinary.com/dsebmsrno/image/upload/...`).
+  3. En el listado (`Tab2Page`), seguimiento (`Tab3Page`) y detalle (`DetallePage`), las imágenes se sirven aplicando transformaciones dinámicas de Cloudinary (`f_auto,q_auto,w_...`) e incluyen un visor **Lightbox a pantalla completa**.
 
-### 4.4 Arquitectura Angular Standalone y sincronización reactiva (`R1`, `R8`, `R9`, `R10`)
+### 4.4 Mejoras de Interfaz Visual, Organización y Usabilidad (Tema Oscuro Institucional)
+- **Inicio (`Tab1Page`):** Hero institucional con insignias de estado en vivo (*DMQ Operativo* y *Cloudinary CDN*), barra de progreso visual de tasa de resolución municipal y tarjetas KPI Bento con iconografía iluminada.
+- **Listado (`Tab2Page`):** Panel organizativo con buscador en tiempo real (`ion-searchbar`), filtros combinados por **Estado** y **Prioridad**, tarjetas con bordes semánticos según el estado e indicador de alojamiento en Cloudinary CDN.
+- **Formulario de Registro (`RegistroPage`):** Barra de progreso de 4 pasos interactivos, selector rápido de prioridad por píldoras, captura dual (*Cámara* / *Galería*), estado de subida a Cloudinary en vivo y panel meteorológico en cuadrícula Bento de 3 métricas.
+- **Detalle (`DetallePage`):** Línea de tiempo del flujo de estado (*Pendiente → En Proceso → Resuelta*), visor ampliable de fotografía a pantalla completa y bloques estructurados de ubicación y clima.
+
+### 4.5 Arquitectura Angular Standalone y sincronización reactiva (`R1`, `R8`, `R9`, `R10`)
 - La aplicación está construida 100 % con **componentes Standalone** de Angular e Ionic.
 - `IncidenciasService` expone el flujo `cambios$` (`Subject<void>`) y `StorageService` expone `seguidos$` (`BehaviorSubject<string[]>`), garantizando que cualquier alta de incidencia, transición de estado (`pendiente -> en proceso -> resuelta`) o cambio en el seguimiento local actualice de inmediato los indicadores del inicio (`Tab1Page`), el listado paginado (`Tab2Page`) y la vista de seguimiento (`Tab3Page`).
 

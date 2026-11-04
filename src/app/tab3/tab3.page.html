@@ -1,14 +1,52 @@
 <ion-header>
   <ion-toolbar color="dark">
-    <ion-title> Seguimiento Local</ion-title>
+    <ion-title>Seguimiento Local</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
- 
-   
-    
 
+  <!-- Cabecera de Resumen y Filtros de Seguimiento -->
+  <div class="resumen-seguimiento" *ngIf="incidenciasSeguidas.length > 0">
+    <div class="resumen-top">
+      <div>
+        <span class="sub-lbl">ALMACENAMIENTO EN DISPOSITIVO</span>
+        <h3>{{ incidenciasSeguidas.length }} {{ incidenciasSeguidas.length === 1 ? 'Incidencia Marcada' : 'Incidencias Marcadas' }}</h3>
+      </div>
+      <ion-icon name="bookmark" class="bookmark-hero-icon"></ion-icon>
+    </div>
+
+    <div class="chips-scroll">
+      <button
+        type="button"
+        class="chip-btn"
+        [class.active]="filtroEstado === 'todos'"
+        (click)="seleccionarFiltro('todos')">
+        Todas ({{ incidenciasSeguidas.length }})
+      </button>
+      <button
+        type="button"
+        class="chip-btn danger"
+        [class.active]="filtroEstado === 'pendiente'"
+        (click)="seleccionarFiltro('pendiente')">
+        Pendientes
+      </button>
+      <button
+        type="button"
+        class="chip-btn warning"
+        [class.active]="filtroEstado === 'en proceso'"
+        (click)="seleccionarFiltro('en proceso')">
+        En Proceso
+      </button>
+      <button
+        type="button"
+        class="chip-btn success"
+        [class.active]="filtroEstado === 'resuelta'"
+        (click)="seleccionarFiltro('resuelta')">
+        Resueltas
+      </button>
+    </div>
+  </div>
 
   <div class="vacio-box" *ngIf="cargando && incidenciasSeguidas.length === 0">
     <ion-spinner name="crescent"></ion-spinner>
@@ -23,7 +61,7 @@
   </div>
 
   <ion-card
-    *ngFor="let item of incidenciasSeguidas"
+    *ngFor="let item of seguidasFiltradas"
     class="seguimiento-card"
     (click)="abrirDetalle(item.id)">
 
@@ -33,11 +71,19 @@
         <ion-badge [color]="colorEstado(item.estado)">{{ item.estado | uppercase }}</ion-badge>
       </div>
       <ion-card-title>{{ item.tipo }}</ion-card-title>
-      <ion-card-subtitle>{{ item.sector }} • {{ item.direccion }}</ion-card-subtitle>
+      <ion-card-subtitle>
+        <ion-icon name="location-outline"></ion-icon>
+        {{ item.sector }} • {{ item.direccion }}
+      </ion-card-subtitle>
     </ion-card-header>
 
     <ion-card-content>
-      <p>{{ item.descripcion }}</p>
+      <div class="card-body-flex">
+        <p class="desc-txt">{{ item.descripcion }}</p>
+        <ion-thumbnail *ngIf="item.fotografia" class="thumb-seguimiento">
+          <img [src]="cloudinaryService.optimizarUrl(item.fotografia, 200)" alt="Evidencia" />
+        </ion-thumbnail>
+      </div>
 
       <ion-button
         expand="block"
