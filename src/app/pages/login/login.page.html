@@ -1,0 +1,140 @@
+<ion-content class="ion-padding login-content">
+  <div class="login-wrapper">
+
+    <!-- Cabecera Institucional Quito -->
+    <div class="quito-login-hero">
+      <div class="quito-escudo-box">
+        <div class="hero-top-badges">
+          <span class="status-pill online">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            Acceso Oficial DMQ
+          </span>
+          <span class="status-pill cloud">
+            Firebase Auth
+          </span>
+        </div>
+
+        <ion-icon name="flame-outline" class="escudo-icono"></ion-icon>
+        <span class="quito-palabra">Quito</span>
+        <span class="quito-sub">ALCALDÍA METROPOLITANA • URBANINSPECT</span>
+      </div>
+    </div>
+
+    <!-- Tarjeta de Autenticación -->
+    <ion-card class="login-card">
+      <ion-card-header>
+        <!-- Selector Iniciar Sesión / Crear Cuenta -->
+        <div class="auth-mode-tabs">
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="modo === 'login'"
+            (click)="cambiarModo('login')">
+            <ion-icon name="log-in-outline"></ion-icon>
+            Iniciar Sesión
+          </button>
+
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="modo === 'registro'"
+            (click)="cambiarModo('registro')">
+            <ion-icon name="person-add-outline"></ion-icon>
+            Crear Cuenta
+          </button>
+        </div>
+
+        <ion-card-title>
+          {{ modo === 'login' ? 'Portal del Inspector' : 'Registro de Inspector' }}
+        </ion-card-title>
+        <ion-card-subtitle>
+          {{ modo === 'login'
+            ? 'Ingresa con tu correo electrónico para acceder al sistema de inspección urbana.'
+            : 'Registra tu correo y contraseña para habilitar tu acceso en campo.' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <form [formGroup]="form" (ngSubmit)="enviarFormulario()">
+
+          <!-- Correo Electrónico -->
+          <div class="input-group">
+            <ion-item lines="none" class="login-item">
+              <ion-icon name="mail-outline" slot="start" class="field-icon"></ion-icon>
+              <ion-input
+                type="email"
+                label="Correo electrónico *"
+                labelPlacement="stacked"
+                placeholder="inspector@quito.gob.ec"
+                autocomplete="email"
+                formControlName="correo">
+              </ion-input>
+            </ion-item>
+            <ion-note color="danger" class="error-msg" *ngIf="form.get('correo')?.touched && form.get('correo')?.invalid">
+              Ingresa un correo electrónico válido.
+            </ion-note>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="input-group">
+            <ion-item lines="none" class="login-item">
+              <ion-icon name="lock-closed-outline" slot="start" class="field-icon"></ion-icon>
+              <ion-input
+                [type]="mostrarPassword ? 'text' : 'password'"
+                label="Contraseña *"
+                labelPlacement="stacked"
+                placeholder="Mínimo 6 caracteres"
+                autocomplete="current-password"
+                formControlName="contrasena">
+              </ion-input>
+              <ion-button
+                fill="clear"
+                slot="end"
+                type="button"
+                class="eye-btn"
+                (click)="toggleMostrarPassword()">
+                <ion-icon slot="icon-only" [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </ion-button>
+            </ion-item>
+            <ion-note color="danger" class="error-msg" *ngIf="form.get('contrasena')?.touched && form.get('contrasena')?.invalid">
+              La contraseña debe tener al menos 6 caracteres.
+            </ion-note>
+          </div>
+
+          <!-- Alerta de Error de Firebase Auth -->
+          <div class="alert-box danger" *ngIf="mensajeError">
+            <ion-icon name="alert-circle"></ion-icon>
+            <span>{{ mensajeError }}</span>
+          </div>
+
+          <!-- Botón Principal -->
+          <ion-button
+            expand="block"
+            color="primary"
+            type="submit"
+            class="submit-login-btn"
+            [disabled]="procesando">
+            <ion-spinner *ngIf="procesando" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!procesando" [name]="modo === 'login' ? 'log-in-outline' : 'person-add-outline'" slot="start"></ion-icon>
+            {{ modo === 'login' ? 'Ingresar a UrbanInspect' : 'Crear Cuenta e Ingresar' }}
+          </ion-button>
+
+          <!-- Recuperación de contraseña -->
+          <div class="forgot-box" *ngIf="modo === 'login'">
+            <button type="button" class="forgot-link" (click)="olvideMiContrasena()">
+              <ion-icon name="key-outline"></ion-icon>
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="login-footer">
+      <span>Distrito Metropolitano de Quito • Control de Infraestructura Urbana</span>
+    </div>
+
+  </div>
+</ion-content>
+

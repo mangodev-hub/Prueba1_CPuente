@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
-  IonCardContent, IonGrid, IonRow, IonCol,
+  IonCardContent, IonGrid, IonRow, IonCol, IonButtons, IonButton,
   IonIcon, IonSpinner, IonRefresher, IonRefresherContent,
   AlertController, ViewWillEnter
 } from '@ionic/angular';
@@ -11,13 +11,15 @@ import { addIcons } from 'ionicons';
 import {
   addCircle, listOutline, bookmarkOutline, alertCircleOutline,
   timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline,
-  refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline
+  refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline,
+  logOutOutline, personCircleOutline
 } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 
 import { IncidenciasService } from '../core/services/incidencias';
 import { StorageService } from '../core/services/storage';
 import { CloudinaryService } from '../core/services/cloudinary';
+import { AuthService } from '../core/services/auth';
 import { Incidencia } from '../core/models/incidencia.model';
 
 @Component({
@@ -28,7 +30,7 @@ import { Incidencia } from '../core/models/incidencia.model';
   imports: [
     CommonModule, RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
-    IonCardContent, IonGrid, IonRow, IonCol,
+    IonCardContent, IonGrid, IonRow, IonCol, IonButtons, IonButton,
     IonIcon, IonSpinner, IonRefresher, IonRefresherContent
   ],
 })
@@ -36,6 +38,7 @@ export class Tab1Page implements OnInit, OnDestroy, ViewWillEnter {
   private incidenciasService = inject(IncidenciasService);
   private storageService = inject(StorageService);
   readonly cloudinaryService = inject(CloudinaryService);
+  readonly authService = inject(AuthService);
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -59,8 +62,28 @@ export class Tab1Page implements OnInit, OnDestroy, ViewWillEnter {
     addIcons({
       addCircle, listOutline, bookmarkOutline, alertCircleOutline,
       timeOutline, checkmarkDoneOutline, flameOutline, documentTextOutline,
-      refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline
+      refreshOutline, cloudDoneOutline, shieldCheckmarkOutline, chevronForwardOutline,
+      logOutOutline, personCircleOutline
     });
+  }
+
+  async confirmarCerrarSesion() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cerrar Sesión',
+      message: '¿Deseas salir de tu cuenta de inspector?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Salir',
+          role: 'destructive',
+          handler: async () => {
+            await this.authService.cerrarSesion();
+            await this.router.navigateByUrl('/login', { replaceUrl: true });
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   get porcentajeResolucion(): number {

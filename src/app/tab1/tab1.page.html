@@ -1,6 +1,11 @@
 <ion-header>
   <ion-toolbar color="dark">
     <ion-title>Quito • UrbanInspect</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="confirmarCerrarSesion()" color="light" title="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -17,9 +22,9 @@
           <ion-icon name="shield-checkmark-outline"></ion-icon>
           DMQ Operativo
         </span>
-        <span class="status-pill cloud">
-          <ion-icon name="cloud-done-outline"></ion-icon>
-          Sincronización Nube
+        <span class="status-pill cloud" *ngIf="authService.usuarioActual as user">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          {{ user.email }}
         </span>
       </div>
       <ion-icon name="flame-outline" class="escudo-icono"></ion-icon>
